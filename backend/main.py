@@ -1,0 +1,236 @@
+"""
+FastAPI backend for Mirmer AI multi-LLM consultation system.
+"""
+import logging
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Optional
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+logger = logging.getLogger(__name__)
+
+# Initialize FastAPI app
+app = FastAPI(
+    title="Mirmer AI",
+    description="Multi-LLM consultation system with 3-stage council process",
+    version="0.1.0"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Vite dev server
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# Pydantic models for requests/responses
+class MessageRequest(BaseModel):
+    content: str
+    api_key: Optional[str] = None
+
+
+class ConversationResponse(BaseModel):
+    id: str
+    title: str
+    created_at: str
+
+
+@app.get("/")
+async def root():
+    """Health check endpoint."""
+    return {
+        "status": "ok",
+        "service": "Mirmer AI",
+        "version": "0.1.0"
+    }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)
+
+
+
+import storage
+
+
+@app.post("/api/conversations", response_model=ConversationResponse)
+async def create_conversation():
+    """
+    Create a new conversation.
+    
+    Requirements: 8.4, 8.5
+    """
+    try:
+        conversation = storage.create_conversation()
+        return ConversationResponse(
+            id=conversation["id"],
+            title=conversation["title"],
+            created_at=conversation["created_at"]
+        )
+    except Exception as e:
+        logger.error(f"Error creating conversation: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create conversation")
+
+
+@app.get("/api/conversations")
+async def list_conversations():
+    """
+    List all conversations.
+    
+    Requirements: 8.4
+    """
+    try:
+        conversations = storage.list_conversations()
+        return {"conversations": conversations}
+    except Exception as e:
+        logger.error(f"Error listing conversations: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to list conversations")
+
+
+@app.get("/api/conversations/{conversation_id}")
+async def get_conversation(conversation_id: str):
+    """
+    Get specific conversation.
+    
+    Requirements: 8.5
+    """
+    try:
+        conversation = storage.get_conversation(conversation_id)
+        
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversation not found")
+        
+        return conversation
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting conversation {conversation_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get conversation")
+
+
+
+import json
+from fastapi.responses import StreamingResponse
+import council
+
+
+@app.post("/api/conversations/{conversation_id}/message/stream")
+async def send_message_stream(conversation_id: str, request: MessageRequest):
+    """
+    Send message and stream 3-stage council process via Server-Sent Events.
+    
+    Requirements: 2.3, 2.4, 3.1, 4.3, 6.2, 9.4
+    """
+    
+    async def event_generator():
+        try:
+            # Validate conversation exists
+            conversation = storage.get_conversation(conversation_id)
+            if not conversation:
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Conversation not found'})}\n\n"
+                return
+            
+            # Add user message to conversation
+            storage.add_user_message(conversation_id, request.content)
+            
+            # Stage 1: Collect individual responses
+            yield f"data: {json.dumps({'type': 'stage1_start'})}\n\n"
+            
+            stage1_results = await council.stage1_collect_responses(
+                user_query=request.content,
+                api_key=request.api_key
+            )
+            
+            if not stage1_results:
+                yield f"data: {json.dumps({'type': 'error', 'message': 'All models failed in Stage 1'})}\n\n"
+                return
+            
+            yield f"data: {json.dumps({'type': 'stage1_complete', 'data': stage1_results})}\n\n"
+            
+            # Stage 2: Collect peer rankings
+            yield f"data: {json.dumps({'type': 'stage2_start'})}\n\n"
+            
+            stage2_results, label_to_model = await council.stage2_collect_rankings(
+                user_query=request.content,
+                stage1_results=stage1_results,
+                api_key=request.api_key
+            )
+            
+            if not stage2_results:
+                yield f"data: {json.dumps({'type': 'error', 'message': 'All models failed in Stage 2'})}\n\n"
+                return
+            
+            # Calculate aggregate rankings
+            aggregate_rankings = council.calculate_aggregate_rankings(
+                stage2_results=stage2_results,
+                label_to_model=label_to_model
+            )
+            
+            stage2_data = {
+                "rankings": stage2_results,
+                "label_to_model": label_to_model,
+                "aggregate_rankings": aggregate_rankings
+            }
+            
+            yield f"data: {json.dumps({'type': 'stage2_complete', 'data': stage2_data})}\n\n"
+            
+            # Stage 3: Chairman synthesis
+            yield f"data: {json.dumps({'type': 'stage3_start'})}\n\n"
+            
+            stage3_result = await council.stage3_synthesize_final(
+                user_query=request.content,
+                stage1_results=stage1_results,
+                stage2_results=stage2_results,
+                api_key=request.api_key
+            )
+            
+            yield f"data: {json.dumps({'type': 'stage3_complete', 'data': stage3_result})}\n\n"
+            
+            # Save complete assistant message
+            metadata = {
+                "label_to_model": label_to_model,
+                "aggregate_rankings": aggregate_rankings
+            }
+            
+            storage.add_assistant_message(
+                conversation_id=conversation_id,
+                stage1=stage1_results,
+                stage2=stage2_results,
+                stage3=stage3_result,
+                metadata=metadata
+            )
+            
+            # Update conversation title if this is the first message
+            if len(conversation["messages"]) == 0:
+                # Generate simple title from first few words
+                title_words = request.content.split()[:8]
+                title = " ".join(title_words)
+                if len(request.content.split()) > 8:
+                    title += "..."
+                storage.update_conversation_title(conversation_id, title)
+            
+            # Send completion event
+            yield f"data: {json.dumps({'type': 'complete'})}\n\n"
+            
+        except Exception as e:
+            logger.error(f"Error in event generator: {str(e)}", exc_info=True)
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+    
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        }
+    )

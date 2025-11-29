@@ -317,3 +317,114 @@ def calculate_aggregate_rankings(
     logger.info(f"Aggregate rankings calculated for {len(aggregate)} models")
     
     return aggregate
+
+
+
+def _build_chairman_prompt(
+    user_query: str,
+    stage1_results: List[Dict[str, Any]],
+    stage2_results: List[Dict[str, Any]]
+) -> str:
+    """
+    Build the chairman prompt with full context from all stages.
+    
+    Args:
+        user_query: The original user question
+        stage1_results: Individual responses from Stage 1
+        stage2_results: Rankings from Stage 2
+    
+    Returns:
+        Complete prompt string for chairman synthesis
+    
+    Requirements: 6.1, 6.3
+    """
+    # Format Stage 1 responses
+    stage1_text = "STAGE 1 - Individual Responses:\n\n"
+    for i, result in enumerate(stage1_results, 1):
+        model_name = result["model"].split("/")[-1] if "/" in result["model"] else result["model"]
+        stage1_text += f"{i}. {model_name}:\n{result['response']}\n\n"
+    
+    # Format Stage 2 rankings
+    stage2_text = "STAGE 2 - Peer Rankings:\n\n"
+    for i, result in enumerate(stage2_results, 1):
+        model_name = result["model"].split("/")[-1] if "/" in result["model"] else result["model"]
+        stage2_text += f"{i}. {model_name}'s Ranking:\n{result['ranking']}\n\n"
+    
+    # Build complete chairman prompt
+    prompt = f"""You are the Chairman of an LLM Council. Multiple AI models have provided responses to a question and then ranked each other's answers.
+
+Original Question: {user_query}
+
+{stage1_text}
+
+{stage2_text}
+
+Your task as Chairman is to synthesize all of this information into a single, comprehensive answer. This is NOT a summary - you should:
+
+1. Consider the insights from all individual responses
+2. Take into account the peer rankings and what they reveal about response quality
+3. Note patterns of agreement or disagreement among the models
+4. Integrate the collective wisdom into a cohesive, well-reasoned answer
+5. Provide additional context or nuance where the council's responses complement each other
+
+Synthesize the council's collective wisdom into your final answer:"""
+    
+    return prompt
+
+
+
+from openrouter import query_model
+from config import CHAIRMAN_MODEL
+
+
+async def stage3_synthesize_final(
+    user_query: str,
+    stage1_results: List[Dict[str, Any]],
+    stage2_results: List[Dict[str, Any]],
+    api_key: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Stage 3: Chairman synthesizes final response with full context.
+    
+    Args:
+        user_query: The original user question
+        stage1_results: Individual responses from Stage 1
+        stage2_results: Rankings from Stage 2
+        api_key: OpenRouter API key (uses config default if not provided)
+    
+    Returns:
+        Dictionary with 'model' and 'response' keys.
+        Returns error message if chairman query fails.
+    
+    Requirements: 6.2, 6.4, 6.5
+    """
+    logger.info(f"Stage 3: Chairman ({CHAIRMAN_MODEL}) synthesizing final answer")
+    
+    # Build comprehensive chairman prompt
+    chairman_prompt = _build_chairman_prompt(user_query, stage1_results, stage2_results)
+    
+    # Create messages
+    messages = [
+        {"role": "user", "content": chairman_prompt}
+    ]
+    
+    # Query chairman model
+    response = await query_model(
+        model=CHAIRMAN_MODEL,
+        messages=messages,
+        api_key=api_key
+    )
+    
+    if response is None or not response.get("content"):
+        logger.error("Stage 3: Chairman failed to generate response")
+        return {
+            "model": CHAIRMAN_MODEL,
+            "response": "Error: The chairman was unable to synthesize a final answer. Please try again."
+        }
+    
+    logger.info("Stage 3: Chairman synthesis complete")
+    
+    return {
+        "model": CHAIRMAN_MODEL,
+        "response": response["content"]
+    }

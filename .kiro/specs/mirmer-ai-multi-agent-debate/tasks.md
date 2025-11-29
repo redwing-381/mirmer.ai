@@ -66,60 +66,60 @@
     - Return list with model, average_rank, rankings_count
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 5. Implement Stage 3: Final synthesis
-  - [ ] 5.1 Build chairman prompt
+- [x] 5. Implement Stage 3: Final synthesis
+  - [x] 5.1 Build chairman prompt
     - Format all Stage 1 responses with model names
     - Format all Stage 2 rankings with model names
     - Create comprehensive prompt for chairman
     - Emphasize synthesis over summarization
     - _Requirements: 6.1, 6.3_
 
-  - [ ] 5.2 Implement stage3_synthesize_final() function
+  - [x] 5.2 Implement stage3_synthesize_final() function
     - Query CHAIRMAN_MODEL with full context
     - Handle None response with error message
     - Return {"model": str, "response": str}
     - _Requirements: 6.2, 6.4, 6.5_
 
-- [ ] 6. Implement JSON storage layer
-  - [ ] 6.1 Create backend/storage.py module
+- [x] 6. Implement JSON storage layer
+  - [x] 6.1 Create backend/storage.py module
     - Implement ensure_data_dir() to create data/conversations/
     - Implement get_conversation_path() helper
     - _Requirements: 8.1_
 
-  - [ ] 6.2 Implement conversation CRUD functions
+  - [x] 6.2 Implement conversation CRUD functions
     - Create create_conversation() with UUID and timestamp
     - Create get_conversation() to load from JSON
     - Create list_conversations() to scan directory
     - Create save_conversation() to write JSON
     - _Requirements: 8.1, 8.2, 8.4_
 
-  - [ ] 6.3 Implement message functions
+  - [x] 6.3 Implement message functions
     - Create add_user_message() function
     - Create add_assistant_message() with stage1, stage2, stage3
     - Create update_conversation_title() function
     - _Requirements: 8.2, 8.3_
 
-- [ ] 7. Build FastAPI backend
-  - [ ] 7.1 Create backend/config.py
+- [x] 7. Build FastAPI backend
+  - [x] 7.1 Create backend/config.py
     - Load OPENROUTER_API_KEY from environment
     - Define COUNCIL_MODELS list (gpt-4-turbo, claude-3-sonnet, gemini-pro)
     - Define CHAIRMAN_MODEL
     - Define OPENROUTER_API_URL and DATA_DIR
     - _Requirements: 1.3, 3.1_
 
-  - [ ] 7.2 Create backend/main.py with FastAPI app
+  - [x] 7.2 Create backend/main.py with FastAPI app
     - Initialize FastAPI app
     - Add CORS middleware for localhost:5173
     - Create Pydantic models for requests/responses
     - _Requirements: 1.1_
 
-  - [ ] 7.3 Implement conversation endpoints
+  - [x] 7.3 Implement conversation endpoints
     - POST /api/conversations - create new conversation
     - GET /api/conversations - list all conversations
     - GET /api/conversations/{id} - get specific conversation
     - _Requirements: 8.4, 8.5_
 
-  - [ ] 7.4 Implement streaming message endpoint
+  - [x] 7.4 Implement streaming message endpoint
     - POST /api/conversations/{id}/message/stream
     - Create async event_generator() function
     - Emit stage1_start event
@@ -132,28 +132,28 @@
     - Return StreamingResponse with text/event-stream
     - _Requirements: 2.3, 2.4, 3.1, 4.3, 6.2, 9.4_
 
-  - [ ] 7.5 Add error handling
+  - [x] 7.5 Add error handling
     - Wrap event_generator in try-catch
     - Emit error events on exceptions
     - Log errors with timestamps
     - _Requirements: 9.1, 9.2, 9.5_
 
-- [ ] 8. Build React frontend foundation
-  - [ ] 8.1 Set up Vite + React project
+- [x] 8. Build React frontend foundation
+  - [x] 8.1 Set up Vite + React project
     - Initialize Vite with React template
     - Install dependencies (react, react-dom, react-markdown)
     - Configure Tailwind CSS
     - Create basic App.jsx structure
     - _Requirements: 7.5_
 
-  - [ ] 8.2 Create frontend/src/api.js
+  - [x] 8.2 Create frontend/src/api.js
     - Implement sendMessageStream() with ReadableStream API
     - Parse SSE events (data: {...})
     - Call onEvent callback for each event type
     - Implement createConversation(), listConversations(), getConversation()
     - _Requirements: 2.4_
 
-  - [ ] 8.3 Implement App.jsx state management
+  - [x] 8.3 Implement App.jsx state management
     - Create conversations state array
     - Create currentConversationId state
     - Create currentConversation state with messages
@@ -161,8 +161,8 @@
     - Implement handleSendMessage() with optimistic updates
     - _Requirements: 8.4, 8.5_
 
-- [ ] 9. Build Stage display components
-  - [ ] 9.1 Create frontend/src/components/Stage1.jsx
+- [x] 9. Build Stage display components
+  - [x] 9.1 Create frontend/src/components/Stage1.jsx
     - Build tabbed interface with useState for activeTab
     - Map over responses to create tab buttons
     - Display model name (split by '/' and take [1])
@@ -170,7 +170,7 @@
     - Add loading spinner when stage1 loading is true
     - _Requirements: 7.1, 7.5_
 
-  - [ ] 9.2 Create frontend/src/components/Stage2.jsx
+  - [x] 9.2 Create frontend/src/components/Stage2.jsx
     - Build tabbed interface for rankings
     - Implement deAnonymizeText() function to replace labels with model names
     - Display ranking text with de-anonymization
@@ -180,7 +180,7 @@
     - Add loading spinner when stage2 loading is true
     - _Requirements: 7.2, 7.3, 7.5_
 
-  - [ ] 9.3 Create frontend/src/components/Stage3.jsx
+  - [x] 9.3 Create frontend/src/components/Stage3.jsx
     - Display chairman model name
     - Render final response with ReactMarkdown
     - Add prominent styling (border, padding)
