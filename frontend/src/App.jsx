@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from './api'
+import Sidebar from './components/Sidebar'
+import ChatInterface from './components/ChatInterface'
 
 function App() {
   // State management
@@ -183,38 +185,43 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto p-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Mirmer AI - Multi-LLM Consultation
-        </h1>
-        
-        {/* API Key Input */}
-        <div className="mb-4">
-          <input
-            type="password"
-            placeholder="OpenRouter API Key (optional)"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-          />
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <Sidebar
+        conversations={conversations}
+        currentConversationId={currentConversationId}
+        onSelectConversation={setCurrentConversationId}
+        onNewConversation={handleNewConversation}
+      />
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-900">
+              Mirmer AI
+            </h1>
+            
+            {/* API Key Input */}
+            <div className="w-96">
+              <input
+                type="password"
+                placeholder="OpenRouter API Key (optional)"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* New Conversation Button */}
-        <button
-          onClick={handleNewConversation}
-          className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          New Conversation
-        </button>
-
-        {/* Placeholder for chat interface */}
-        {currentConversation && (
-          <div className="bg-white rounded-lg shadow p-4">
-            <h2 className="text-xl font-semibold mb-4">{currentConversation.title}</h2>
-            <p className="text-gray-600">Messages: {currentConversation.messages?.length || 0}</p>
-          </div>
-        )}
+        {/* Chat Interface */}
+        <ChatInterface
+          conversation={currentConversation}
+          onSendMessage={handleSendMessage}
+          loading={loading}
+        />
       </div>
     </div>
   )

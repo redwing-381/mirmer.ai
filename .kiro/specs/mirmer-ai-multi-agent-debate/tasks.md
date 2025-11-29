@@ -187,8 +187,8 @@
     - Add loading spinner when stage3 loading is true
     - _Requirements: 7.4, 7.5_
 
-- [ ] 10. Build conversation management UI
-  - [ ] 10.1 Create frontend/src/components/Sidebar.jsx
+- [x] 10. Build conversation management UI
+  - [x] 10.1 Create frontend/src/components/Sidebar.jsx
     - Display list of conversations
     - Show title and created_at for each
     - Add "New Conversation" button
@@ -196,7 +196,7 @@
     - Implement conversation selection onClick
     - _Requirements: 8.4, 8.5_
 
-  - [ ] 10.2 Create frontend/src/components/ChatInterface.jsx
+  - [x] 10.2 Create frontend/src/components/ChatInterface.jsx
     - Display messages list (user and assistant)
     - Render Stage1, Stage2, Stage3 components for assistant messages
     - Add message input textarea
@@ -205,7 +205,7 @@
     - Show loading indicator during processing
     - _Requirements: 2.1, 2.2, 2.4_
 
-  - [ ] 10.3 Implement title generation
+  - [x] 10.3 Implement title generation
     - Create generate_conversation_title() function in council.py
     - Query a fast model with "Generate a short title for: {query}"
     - Run in parallel with stages using asyncio.create_task()
@@ -213,8 +213,8 @@
     - Update conversation title in storage
     - _Requirements: 8.3_
 
-- [ ] 11. Add styling and polish
-  - [ ] 11.1 Style Stage components
+- [x] 11. Add styling and polish
+  - [x] 11.1 Style Stage components
     - Add CSS for tabs (active state, hover effects)
     - Style markdown content (code blocks, lists, headings)
     - Add loading spinner animations
@@ -222,7 +222,7 @@
     - Make responsive for mobile
     - _Requirements: 7.5_
 
-  - [ ] 11.2 Style chat interface
+  - [x] 11.2 Style chat interface
     - Style message bubbles (user vs assistant)
     - Add smooth transitions between stages
     - Style input textarea and button
@@ -230,7 +230,7 @@
     - Create responsive layout
     - _Requirements: 2.4_
 
-  - [ ] 11.3 Style sidebar
+  - [x] 11.3 Style sidebar
     - Style conversation list items
     - Add hover effects
     - Highlight active conversation
@@ -238,15 +238,15 @@
     - Make collapsible on mobile
     - _Requirements: 8.4_
 
-- [ ] 12. Add error handling
-  - [ ] 12.1 Implement frontend error handling
+- [x] 12. Add error handling
+  - [x] 12.1 Implement frontend error handling
     - Display error messages from SSE error events
     - Add error boundaries for React components
     - Implement retry logic for failed API calls
     - Rollback optimistic updates on error
     - _Requirements: 9.2, 9.4_
 
-  - [ ] 12.2 Add input validation
+  - [x] 12.2 Add input validation
     - Validate query length (10-2000 characters)
     - Show validation errors in UI
     - Disable submit button when invalid
@@ -267,14 +267,14 @@
     - Verify graceful degradation
     - _Requirements: 9.1, 9.2, 9.3_
 
-- [ ] 14. Create deployment artifacts
-  - [ ] 14.1 Create start script
+- [x] 14. Create deployment artifacts
+  - [x] 14.1 Create start script
     - Create start.sh to run backend and frontend
     - Add instructions for setting OPENROUTER_API_KEY
     - Document port numbers (8001 for backend, 5173 for frontend)
     - _Requirements: All_
 
-  - [ ] 14.2 Write documentation
+  - [x] 14.2 Write documentation
     - Create README with setup instructions
     - Document environment variables
     - Add troubleshooting section

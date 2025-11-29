@@ -56,7 +56,17 @@ npm install
 
 ## Running the Application
 
-### Start Backend (Terminal 1)
+### Quick Start (Recommended)
+
+```bash
+./start.sh
+```
+
+This will start both backend and frontend servers automatically.
+
+### Manual Start
+
+#### Start Backend (Terminal 1)
 
 ```bash
 cd backend
@@ -65,7 +75,7 @@ uv run uvicorn main:app --reload --port 8001
 
 Backend will be available at: http://localhost:8001
 
-### Start Frontend (Terminal 2)
+#### Start Frontend (Terminal 2)
 
 ```bash
 cd frontend
@@ -109,6 +119,43 @@ The application uses:
 - **Frontend**: React 19 with Vite for fast development
 - **Communication**: Server-Sent Events for real-time streaming
 - **Storage**: JSON files for conversation persistence
+
+## How It Works
+
+### The 3-Stage Council Process
+
+1. **Stage 1: Individual Responses**
+   - All council models answer your question independently in parallel
+   - Each model provides its unique perspective
+
+2. **Stage 2: Peer Rankings**
+   - Responses are anonymized (labeled as "Response A", "Response B", etc.)
+   - Each model ranks all responses from best to worst
+   - Aggregate rankings show which responses were collectively rated highest
+
+3. **Stage 3: Chairman Synthesis**
+   - The chairman model receives all responses and rankings
+   - Synthesizes the collective wisdom into a comprehensive final answer
+   - Represents the consensus and insights from the entire council
+
+## Troubleshooting
+
+### Backend Issues
+
+- **Import errors**: Make sure you're in the backend directory and run `uv sync`
+- **Port already in use**: Change the port in `start.sh` or kill the process using port 8001
+- **API key errors**: Ensure your OpenRouter API key is set in `.env`
+
+### Frontend Issues
+
+- **Module not found**: Run `npm install` in the frontend directory
+- **Port already in use**: Change the port in `vite.config.js` or kill the process using port 5173
+
+### Model Issues
+
+- **402 Payment Required**: Your OpenRouter account needs credits, or switch to free models in `backend/config.py`
+- **404 Model Not Found**: Update model IDs in `backend/config.py` to valid OpenRouter models
+- **All models failed**: Check your API key and internet connection
 
 ## License
 
