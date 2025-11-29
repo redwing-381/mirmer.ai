@@ -12,26 +12,37 @@ from config import DATA_DIR
 logger = logging.getLogger(__name__)
 
 
-def ensure_data_dir() -> None:
+def ensure_data_dir(user_id: Optional[str] = None) -> None:
     """
     Ensure the data directory exists.
     
+    Args:
+        user_id: Optional user ID to create user-specific directory
+    
     Requirements: 8.1
     """
-    Path(DATA_DIR).mkdir(parents=True, exist_ok=True)
-    logger.debug(f"Data directory ensured: {DATA_DIR}")
+    if user_id:
+        user_dir = os.path.join(DATA_DIR, user_id)
+        Path(user_dir).mkdir(parents=True, exist_ok=True)
+        logger.debug(f"User directory ensured: {user_dir}")
+    else:
+        Path(DATA_DIR).mkdir(parents=True, exist_ok=True)
+        logger.debug(f"Data directory ensured: {DATA_DIR}")
 
 
-def get_conversation_path(conversation_id: str) -> str:
+def get_conversation_path(conversation_id: str, user_id: Optional[str] = None) -> str:
     """
     Get the file path for a conversation.
     
     Args:
         conversation_id: UUID of the conversation
+        user_id: Optional user ID for user-specific path
     
     Returns:
         Full path to the conversation JSON file
     """
+    if user_id:
+        return os.path.join(DATA_DIR, user_id, f"{conversation_id}.json")
     return os.path.join(DATA_DIR, f"{conversation_id}.json")
 
 
@@ -39,11 +50,12 @@ def get_conversation_path(conversation_id: str) -> str:
 import uuid
 
 
-def create_conversation(conversation_id: Optional[str] = None) -> Dict[str, Any]:
+def create_conversation(user_id: str, conversation_id: Optional[str] = None) -> Dict[str, Any]:
     """
-    Create a new conversation JSON file.
+    Create a new conversation JSON file for a specific user.
     
     Args:
+        user_id: Firebase user ID
         conversation_id: Optional UUID (generates new one if not provided)
     
     Returns:
@@ -51,101 +63,120 @@ def create_conversation(conversation_id: Optional[str] = None) -> Dict[str, Any]
     
     Requirements: 8.1
     """
-    ensure_data_dir()
+    ensure_data_dir(user_id)
     
     if conversation_id is None:
         conversation_id = str(uuid.uuid4())
     
     conversation = {
         "id": conversation_id,
+        "user_id": user_id,
         "created_at": datetime.utcnow().isoformat(),
         "title": "New Conversation",
         "messages": []
     }
     
-    save_conversation(conversation)
-    logger.info(f"Created conversation: {conversation_id}")
+    save_conversation(conversation, user_id)
+    logger.info(f"Created conversation: {conversation_id} for user: {user_id}")
     
     return conversation
 
 
-def get_conversation(conversation_id: str) -> Optional[Dict[str, Any]]:
+def get_conversation(conversation_id: str, user_id: str) -> Optional[Dict[str, Any]]:
     """
-    Load conversation from JSON file.
+    Load conversation from JSON file for a specific user.
     
     Args:
         conversation_id: UUID of the conversation
+        user_id: Firebase user ID
     
     Returns:
         Conversation dictionary or None if not found
     
     Requirements: 8.2, 8.4
     """
-    path = get_conversation_path(conversation_id)
+    path = get_conversation_path(conversation_id, user_id)
     
     if not os.path.exists(path):
-        logger.warning(f"Conversation not found: {conversation_id}")
+        logger.warning(f"Conversation not found: {conversation_id} for user: {user_id}")
         return None
     
     try:
         with open(path, 'r', encoding='utf-8') as f:
             conversation = json.load(f)
-        logger.debug(f"Loaded conversation: {conversation_id}")
+        
+        # Verify the conversation belongs to this user
+        if conversation.get("user_id") != user_id:
+            logger.warning(f"Unauthorized access attempt: {conversation_id} by user: {user_id}")
+            return None
+            
+        logger.debug(f"Loaded conversation: {conversation_id} for user: {user_id}")
         return conversation
     except Exception as e:
         logger.error(f"Error loading conversation {conversation_id}: {str(e)}")
         return None
 
 
-def save_conversation(conversation: Dict[str, Any]) -> bool:
+def save_conversation(conversation: Dict[str, Any], user_id: str) -> bool:
     """
-    Save conversation to JSON file.
+    Save conversation to JSON file for a specific user.
     
     Args:
         conversation: Conversation dictionary
+        user_id: Firebase user ID
     
     Returns:
         True if successful, False otherwise
     
     Requirements: 8.2
     """
-    ensure_data_dir()
+    ensure_data_dir(user_id)
     
     conversation_id = conversation.get("id")
     if not conversation_id:
         logger.error("Cannot save conversation without ID")
         return False
     
-    path = get_conversation_path(conversation_id)
+    # Ensure user_id is set in conversation
+    conversation["user_id"] = user_id
+    
+    path = get_conversation_path(conversation_id, user_id)
     
     try:
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(conversation, f, indent=2, ensure_ascii=False)
-        logger.debug(f"Saved conversation: {conversation_id}")
+        logger.debug(f"Saved conversation: {conversation_id} for user: {user_id}")
         return True
     except Exception as e:
         logger.error(f"Error saving conversation {conversation_id}: {str(e)}")
         return False
 
 
-def list_conversations() -> List[Dict[str, Any]]:
+def list_conversations(user_id: str) -> List[Dict[str, Any]]:
     """
-    List all conversations with metadata.
+    List all conversations for a specific user.
+    
+    Args:
+        user_id: Firebase user ID
     
     Returns:
         List of conversation metadata dicts (id, title, created_at)
     
     Requirements: 8.4
     """
-    ensure_data_dir()
+    user_dir = os.path.join(DATA_DIR, user_id)
+    ensure_data_dir(user_id)
     
     conversations = []
     
     try:
-        for filename in os.listdir(DATA_DIR):
+        if not os.path.exists(user_dir):
+            return []
+            
+        for filename in os.listdir(user_dir):
             if filename.endswith('.json'):
                 conversation_id = filename[:-5]  # Remove .json extension
-                conversation = get_conversation(conversation_id)
+                conversation = get_conversation(conversation_id, user_id)
                 
                 if conversation:
                     conversations.append({
@@ -157,16 +188,16 @@ def list_conversations() -> List[Dict[str, Any]]:
         # Sort by created_at descending (newest first)
         conversations.sort(key=lambda x: x.get("created_at", ""), reverse=True)
         
-        logger.info(f"Listed {len(conversations)} conversations")
+        logger.info(f"Listed {len(conversations)} conversations for user: {user_id}")
         return conversations
         
     except Exception as e:
-        logger.error(f"Error listing conversations: {str(e)}")
+        logger.error(f"Error listing conversations for user {user_id}: {str(e)}")
         return []
 
 
 
-def add_user_message(conversation_id: str, content: str) -> bool:
+def add_user_message(conversation_id: str, content: str, user_id: str) -> bool:
     """
     Add user message to conversation.
     
@@ -179,7 +210,7 @@ def add_user_message(conversation_id: str, content: str) -> bool:
     
     Requirements: 8.2
     """
-    conversation = get_conversation(conversation_id)
+    conversation = get_conversation(conversation_id, user_id)
     
     if not conversation:
         logger.error(f"Cannot add user message: conversation {conversation_id} not found")
@@ -192,7 +223,7 @@ def add_user_message(conversation_id: str, content: str) -> bool:
     
     conversation["messages"].append(message)
     
-    return save_conversation(conversation)
+    return save_conversation(conversation, user_id)
 
 
 def add_assistant_message(
@@ -200,6 +231,7 @@ def add_assistant_message(
     stage1: List[Dict],
     stage2: List[Dict],
     stage3: Dict,
+    user_id: str,
     metadata: Optional[Dict] = None
 ) -> bool:
     """
@@ -217,7 +249,7 @@ def add_assistant_message(
     
     Requirements: 8.2
     """
-    conversation = get_conversation(conversation_id)
+    conversation = get_conversation(conversation_id, user_id)
     
     if not conversation:
         logger.error(f"Cannot add assistant message: conversation {conversation_id} not found")
@@ -235,10 +267,10 @@ def add_assistant_message(
     
     conversation["messages"].append(message)
     
-    return save_conversation(conversation)
+    return save_conversation(conversation, user_id)
 
 
-def update_conversation_title(conversation_id: str, title: str) -> bool:
+def update_conversation_title(conversation_id: str, title: str, user_id: str) -> bool:
     """
     Update conversation title.
     
@@ -251,7 +283,7 @@ def update_conversation_title(conversation_id: str, title: str) -> bool:
     
     Requirements: 8.3
     """
-    conversation = get_conversation(conversation_id)
+    conversation = get_conversation(conversation_id, user_id)
     
     if not conversation:
         logger.error(f"Cannot update title: conversation {conversation_id} not found")
@@ -259,4 +291,30 @@ def update_conversation_title(conversation_id: str, title: str) -> bool:
     
     conversation["title"] = title
     
-    return save_conversation(conversation)
+    return save_conversation(conversation, user_id)
+
+
+
+def delete_conversation(conversation_id: str, user_id: str) -> bool:
+    """
+    Delete a conversation.
+    
+    Args:
+        conversation_id: UUID of the conversation
+    
+    Returns:
+        True if successful, False otherwise
+    """
+    path = get_conversation_path(conversation_id, user_id)
+    
+    if not os.path.exists(path):
+        logger.warning(f"Cannot delete: conversation {conversation_id} not found")
+        return False
+    
+    try:
+        os.remove(path)
+        logger.info(f"Deleted conversation: {conversation_id}")
+        return True
+    except Exception as e:
+        logger.error(f"Error deleting conversation {conversation_id}: {str(e)}")
+        return False

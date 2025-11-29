@@ -5,6 +5,16 @@
 const API_BASE = '/api';
 
 /**
+ * Get headers with user ID
+ */
+function getHeaders(userId) {
+  return {
+    'Content-Type': 'application/json',
+    'X-User-Id': userId,
+  };
+}
+
+/**
  * Send message and stream 3-stage council process via Server-Sent Events.
  * 
  * @param {string} conversationId - Conversation UUID
@@ -14,15 +24,12 @@ const API_BASE = '/api';
  * 
  * Requirements: 2.4
  */
-export async function sendMessageStream(conversationId, content, onEvent, apiKey = null) {
+export async function sendMessageStream(conversationId, content, onEvent, userId) {
   const response = await fetch(`${API_BASE}/conversations/${conversationId}/message/stream`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getHeaders(userId),
     body: JSON.stringify({ 
-      content,
-      api_key: apiKey 
+      content
     }),
   });
 
@@ -70,12 +77,10 @@ export async function sendMessageStream(conversationId, content, onEvent, apiKey
  * 
  * @returns {Promise<Object>} Conversation object with id, title, created_at
  */
-export async function createConversation() {
+export async function createConversation(userId) {
   const response = await fetch(`${API_BASE}/conversations`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getHeaders(userId),
   });
 
   if (!response.ok) {
@@ -90,8 +95,10 @@ export async function createConversation() {
  * 
  * @returns {Promise<Array>} Array of conversation metadata
  */
-export async function listConversations() {
-  const response = await fetch(`${API_BASE}/conversations`);
+export async function listConversations(userId) {
+  const response = await fetch(`${API_BASE}/conversations`, {
+    headers: getHeaders(userId),
+  });
 
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
@@ -107,8 +114,29 @@ export async function listConversations() {
  * @param {string} conversationId - Conversation UUID
  * @returns {Promise<Object>} Full conversation object
  */
-export async function getConversation(conversationId) {
-  const response = await fetch(`${API_BASE}/conversations/${conversationId}`);
+export async function getConversation(conversationId, userId) {
+  const response = await fetch(`${API_BASE}/conversations/${conversationId}`, {
+    headers: getHeaders(userId),
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Delete a conversation.
+ * 
+ * @param {string} conversationId - Conversation UUID
+ * @returns {Promise<Object>} Success response
+ */
+export async function deleteConversation(conversationId, userId) {
+  const response = await fetch(`${API_BASE}/conversations/${conversationId}`, {
+    method: 'DELETE',
+    headers: getHeaders(userId),
+  });
 
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
@@ -122,4 +150,5 @@ export const api = {
   createConversation,
   listConversations,
   getConversation,
+  deleteConversation,
 };
