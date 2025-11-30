@@ -19,6 +19,16 @@ function AppPage() {
   const [messageLoading, setMessageLoading] = useState(false)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
   const [usageStats, setUsageStats] = useState(null)
+  
+  // Sidebar collapse state with localStorage persistence
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      const saved = localStorage.getItem('mirmer_sidebar_collapsed')
+      return saved === 'true'
+    } catch {
+      return false
+    }
+  })
 
   // Listen for auth state changes
   useEffect(() => {
@@ -189,6 +199,16 @@ function AppPage() {
     }
   }
 
+  const handleToggleSidebar = () => {
+    const newState = !sidebarCollapsed
+    setSidebarCollapsed(newState)
+    try {
+      localStorage.setItem('mirmer_sidebar_collapsed', String(newState))
+    } catch (error) {
+      console.error('Error saving sidebar state:', error)
+    }
+  }
+
   const handleStreamEvent = (eventType, eventData) => {
     setCurrentConversation(prev => {
       if (!prev || !prev.messages) return prev
@@ -279,21 +299,19 @@ function AppPage() {
         </div>
       )}
 
-      {/* Fixed Sidebar */}
-      <div className="flex-shrink-0">
-        <Sidebar
-          conversations={conversations}
-          currentConversationId={currentConversationId}
-          onSelectConversation={setCurrentConversationId}
-          onNewConversation={handleNewConversation}
-          onDeleteConversation={handleDeleteConversation}
-          userId={user.uid}
-          user={user}
-        />
-      </div>
+      {/* Collapsible Sidebar */}
+      <Sidebar
+        conversations={conversations}
+        currentConversationId={currentConversationId}
+        onSelectConversation={setCurrentConversationId}
+        onNewConversation={handleNewConversation}
+        onDeleteConversation={handleDeleteConversation}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={handleToggleSidebar}
+      />
 
       {/* Scrollable Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : 'ml-80'}`}>
         <div className="bg-white border-b-4 border-black p-6 flex-shrink-0">
           <div className="flex items-center justify-between">
             <h1 className="text-4xl font-black">

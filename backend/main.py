@@ -217,7 +217,12 @@ async def send_message_stream(conversation_id: str, request: MessageRequest, x_u
             storage.add_user_message(conversation_id, request.content, user_id=x_user_id)
             
             # Increment usage count
-            usage.increment_usage(x_user_id)
+            logger.info(f"📊 Incrementing usage for user: {x_user_id}")
+            increment_success = usage.increment_usage(x_user_id)
+            if increment_success:
+                logger.info(f"✅ Usage increment successful for user: {x_user_id}")
+            else:
+                logger.error(f"❌ Usage increment failed for user: {x_user_id}")
             
             # Stage 1: Collect individual responses
             yield f"data: {json.dumps({'type': 'stage1_start'})}\n\n"

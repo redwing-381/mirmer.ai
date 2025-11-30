@@ -127,9 +127,11 @@ def get_usage_stats(user_id: str) -> Dict:
             stats = {
                 'user_id': usage.user_id,
                 'tier': usage.tier,
-                'daily_used': usage.daily_used,
+                'daily_queries_used': usage.daily_used,  # Frontend expects this field name
+                'daily_used': usage.daily_used,  # Keep for backward compatibility
                 'daily_limit': usage.daily_limit if usage.tier == 'free' else 'unlimited',
-                'monthly_used': usage.monthly_used,
+                'monthly_queries_used': usage.monthly_used,  # Frontend expects this field name
+                'monthly_used': usage.monthly_used,  # Keep for backward compatibility
                 'monthly_limit': usage.monthly_limit if usage.tier == 'free' else 'unlimited',
                 'total_queries': usage.total_queries
             }
@@ -160,12 +162,16 @@ def increment_usage(user_id: str) -> bool:
     Returns:
         True if successful, False otherwise
     """
+    start_time = datetime.utcnow()
+    logger.info(f"🔄 Starting usage increment for user: {user_id} at {start_time.isoformat()}")
+    
     with SessionLocal() as session:
         try:
             usage = session.query(Usage).filter(Usage.user_id == user_id).first()
             
             if not usage:
                 # Create new usage record
+                logger.info(f"🆕 Creating new usage record for user: {user_id}")
                 usage = Usage(
                     user_id=user_id,
                     tier='free',
@@ -180,19 +186,28 @@ def increment_usage(user_id: str) -> bool:
             # Reset counters if needed
             reset_if_needed(usage, session)
             
+            # Log before increment
+            logger.info(f"📈 Before increment - daily: {usage.daily_used}, monthly: {usage.monthly_used}, total: {usage.total_queries}")
+            
             # Increment counters
             usage.daily_used += 1
             usage.monthly_used += 1
             usage.total_queries += 1
             usage.updated_at = datetime.utcnow()
             
+            # Commit to database
             session.commit()
-            logger.info(f"✅ Incremented usage for user: {user_id} (daily: {usage.daily_used}, monthly: {usage.monthly_used}, total: {usage.total_queries})")
+            
+            # Log after commit
+            end_time = datetime.utcnow()
+            duration_ms = (end_time - start_time).total_seconds() * 1000
+            logger.info(f"✅ Incremented usage for user: {user_id} (daily: {usage.daily_used}, monthly: {usage.monthly_used}, total: {usage.total_queries}) - Duration: {duration_ms:.2f}ms")
+            
             return True
             
         except Exception as e:
             session.rollback()
-            logger.error(f"Error incrementing usage for {user_id}: {e}")
+            logger.error(f"❌ Error incrementing usage for {user_id}: {e}", exc_info=True)
             return False
 
 

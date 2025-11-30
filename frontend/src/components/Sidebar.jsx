@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Settings } from 'lucide-react'
-import UsageStats from './UsageStats'
+import { Settings, ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +16,7 @@ import {
  * Sidebar Component
  * Displays list of conversations with titles and timestamps.
  * 
- * Requirements: 8.4, 8.5
+ * Requirements: 8.4, 8.5, 2.1, 2.2, 4.1, 4.2, 4.3, 4.4
  */
 export default function Sidebar({ 
   conversations, 
@@ -25,8 +24,8 @@ export default function Sidebar({
   onSelectConversation, 
   onNewConversation,
   onDeleteConversation,
-  userId,
-  user
+  isCollapsed = false,
+  onToggleCollapse
 }) {
   const navigate = useNavigate()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -56,8 +55,10 @@ export default function Sidebar({
   }
 
   return (
-    <div className="w-80 bg-white border-r-4 border-black h-screen flex flex-col">
-      {/* Header */}
+    <>
+      {/* Sidebar Content */}
+      <div className={`fixed left-0 top-0 w-80 bg-white border-r-4 border-black h-screen flex flex-col transition-transform duration-300 ease-in-out z-40 ${isCollapsed ? '-translate-x-full' : 'translate-x-0'}`}>
+        {/* Header */}
       <div className="p-4 border-b-4 border-black bg-[#4ECDC4]">
         <h2 className="text-2xl font-black mb-3">CONVERSATIONS</h2>
         <button
@@ -66,11 +67,6 @@ export default function Sidebar({
         >
           + New Conversation
         </button>
-      </div>
-
-      {/* Usage Stats */}
-      <div className="p-4 border-b-4 border-black">
-        <UsageStats userId={userId} user={user} />
       </div>
 
       {/* Conversation List */}
@@ -154,6 +150,21 @@ export default function Sidebar({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+      
+      {/* Toggle Button - Always Visible */}
+      <button
+        onClick={onToggleCollapse}
+        className={`fixed top-1/2 -translate-y-1/2 z-50 p-3 bg-[#4ECDC4] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all font-black ${isCollapsed ? 'left-0' : 'left-80'}`}
+        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        {isCollapsed ? (
+          <ChevronRight className="w-5 h-5" />
+        ) : (
+          <ChevronLeft className="w-5 h-5" />
+        )}
+      </button>
+    </>
   )
 }

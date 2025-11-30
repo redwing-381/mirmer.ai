@@ -151,18 +151,22 @@ def get_usage_stats(user_id: str) -> Dict:
     if tier == "free":
         return {
             "tier": "free",
-            "daily_used": usage["daily_count"],
+            "daily_queries_used": usage["daily_count"],  # Frontend expects this field name
+            "daily_used": usage["daily_count"],  # Keep for backward compatibility
             "daily_limit": FREE_TIER_DAILY_LIMIT,
-            "monthly_used": usage["monthly_count"],
+            "monthly_queries_used": usage["monthly_count"],  # Frontend expects this field name
+            "monthly_used": usage["monthly_count"],  # Keep for backward compatibility
             "monthly_limit": FREE_TIER_MONTHLY_LIMIT,
             "total_queries": usage["total_queries"]
         }
     
     return {
         "tier": tier,
-        "daily_used": usage["daily_count"],
+        "daily_queries_used": usage["daily_count"],  # Frontend expects this field name
+        "daily_used": usage["daily_count"],  # Keep for backward compatibility
         "daily_limit": "unlimited",
-        "monthly_used": usage["monthly_count"],
+        "monthly_queries_used": usage["monthly_count"],  # Frontend expects this field name
+        "monthly_used": usage["monthly_count"],  # Keep for backward compatibility
         "monthly_limit": "unlimited",
         "total_queries": usage["total_queries"]
     }
