@@ -133,6 +133,31 @@ async def test_increment(x_user_id: str = Header(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/api/admin/migrate-subscription-fields")
+async def migrate_subscription_fields(admin_key: str = Header(None, alias="x-admin-key")):
+    """Admin endpoint to run database migration for subscription fields."""
+    # Simple admin key check (set ADMIN_KEY environment variable)
+    expected_key = os.getenv('ADMIN_KEY')
+    if not expected_key or admin_key != expected_key:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    try:
+        logger.info("🔧 Running subscription fields migration...")
+        from migrate_add_subscription_fields import migrate
+        success = migrate()
+        
+        if success:
+            return {
+                "success": True,
+                "message": "Migration completed successfully"
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Migration failed - check logs")
+    except Exception as e:
+        logger.error(f"Error running migration: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
