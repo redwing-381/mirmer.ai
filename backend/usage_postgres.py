@@ -103,6 +103,7 @@ def get_usage_stats(user_id: str) -> Dict:
             
             if not usage:
                 # Create new usage record
+                logger.info(f"🆕 Creating new usage record for user: {user_id}")
                 usage = Usage(
                     user_id=user_id,
                     tier='free',
@@ -115,6 +116,7 @@ def get_usage_stats(user_id: str) -> Dict:
                 session.add(usage)
                 session.commit()
                 session.refresh(usage)
+                logger.info(f"✅ Created usage record for user: {user_id}")
             
             # Reset counters if needed
             reset_if_needed(usage, session)
@@ -122,7 +124,7 @@ def get_usage_stats(user_id: str) -> Dict:
             # Refresh to get updated values
             session.refresh(usage)
             
-            return {
+            stats = {
                 'user_id': usage.user_id,
                 'tier': usage.tier,
                 'daily_used': usage.daily_used,
@@ -131,6 +133,8 @@ def get_usage_stats(user_id: str) -> Dict:
                 'monthly_limit': usage.monthly_limit if usage.tier == 'free' else 'unlimited',
                 'total_queries': usage.total_queries
             }
+            logger.info(f"📊 Usage stats for {user_id}: daily={stats['daily_used']}/{stats['daily_limit']}, monthly={stats['monthly_used']}/{stats['monthly_limit']}")
+            return stats
             
         except Exception as e:
             logger.error(f"Error getting usage stats for {user_id}: {e}")
@@ -183,7 +187,7 @@ def increment_usage(user_id: str) -> bool:
             usage.updated_at = datetime.utcnow()
             
             session.commit()
-            logger.debug(f"Incremented usage for user: {user_id} (daily: {usage.daily_used}, monthly: {usage.monthly_used})")
+            logger.info(f"✅ Incremented usage for user: {user_id} (daily: {usage.daily_used}, monthly: {usage.monthly_used}, total: {usage.total_queries})")
             return True
             
         except Exception as e:

@@ -165,7 +165,11 @@ function AppPage() {
       )
 
       loadConversations()
-      loadUsageStats() // Refresh usage stats after sending message
+      
+      // Refresh usage stats after a short delay to ensure backend has updated
+      setTimeout(() => {
+        loadUsageStats()
+      }, 500)
     } catch (error) {
       console.error('Error sending message:', error)
     } finally {
