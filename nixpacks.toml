@@ -13,4 +13,4 @@ cmds = [
 ]
 
 [start]
-cmd = "cd backend && python init_database.py && uvicorn main:app --host 0.0.0.0 --port $PORT"
+cmd = "export PYTHONPATH=/app:$PYTHONPATH && python backend/init_database.py && cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
