@@ -93,7 +93,7 @@ def get_conversation(conversation_id: str, user_id: str) -> Optional[Dict[str, A
                         'stage1': msg.stage1_data or [],
                         'stage2': msg.stage2_data or [],
                         'stage3': msg.stage3_data or {},
-                        'metadata': msg.metadata or {}
+                        'metadata': msg.message_metadata or {}
                     })
             
             logger.debug(f"Loaded conversation: {conversation_id} with {len(messages)} messages")
@@ -325,7 +325,7 @@ def add_assistant_message(
                 stage1_data=stage1,
                 stage2_data=stage2,
                 stage3_data=stage3,
-                metadata=metadata
+                message_metadata=metadata
             )
             
             session.add(db_message)

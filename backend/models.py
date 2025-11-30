@@ -71,7 +71,7 @@ class Message(Base):
     stage1_data = Column(JSON, nullable=True)  # Stage 1: Individual responses
     stage2_data = Column(JSON, nullable=True)  # Stage 2: Rankings
     stage3_data = Column(JSON, nullable=True)  # Stage 3: Chairman synthesis
-    metadata = Column(JSON, nullable=True)     # Additional metadata
+    message_metadata = Column(JSON, nullable=True)     # Additional metadata (renamed from 'metadata' to avoid SQLAlchemy conflict)
     
     # Relationship to conversation
     conversation = relationship('Conversation', back_populates='messages')
