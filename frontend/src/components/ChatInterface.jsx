@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import Stage1 from './Stage1'
 import Stage2 from './Stage2'
 import Stage3 from './Stage3'
+import UpgradeModal from './UpgradeModal'
 
 /**
  * ChatInterface Component
@@ -9,9 +10,14 @@ import Stage3 from './Stage3'
  * 
  * Requirements: 2.1, 2.2, 2.4
  */
-export default function ChatInterface({ conversation, onSendMessage, loading }) {
+export default function ChatInterface({ conversation, onSendMessage, loading, usageStats }) {
   const [input, setInput] = useState('')
   const messagesEndRef = useRef(null)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+
+  // Check if user has reached their limit
+  const isOverLimit = usageStats && usageStats.daily_queries_used >= usageStats.daily_limit
+  const isPro = usageStats && usageStats.tier === 'pro'
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -22,6 +28,12 @@ export default function ChatInterface({ conversation, onSendMessage, loading }) 
     e.preventDefault()
     
     if (!input.trim() || loading) {
+      return
+    }
+
+    // Check if over limit
+    if (isOverLimit) {
+      setShowUpgradeModal(true)
       return
     }
 
@@ -50,7 +62,13 @@ export default function ChatInterface({ conversation, onSendMessage, loading }) 
 
   if (!conversation) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-[#f5f5f5]">
+      <div className="flex-1 flex items-center justify-center bg-[#f5f5f5]" style={{
+        backgroundImage: `
+          linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px)
+        `,
+        backgroundSize: '40px 40px'
+      }}>
         <div className="text-center">
           <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-12 max-w-md">
             <h2 className="text-3xl font-black mb-4">
@@ -68,7 +86,13 @@ export default function ChatInterface({ conversation, onSendMessage, loading }) 
   return (
     <div className="flex-1 flex flex-col bg-[#f5f5f5] min-h-0">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 min-h-0">
+      <div className="flex-1 overflow-y-auto p-6 min-h-0" style={{
+        backgroundImage: `
+          linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px)
+        `,
+        backgroundSize: '40px 40px'
+      }}>
         <div className="max-w-4xl mx-auto space-y-6">
           {conversation.messages?.map((message, index) => (
             <div key={index}>
@@ -99,9 +123,9 @@ export default function ChatInterface({ conversation, onSendMessage, loading }) 
                   />
 
                   {message.error && (
-                    <div className="p-6 bg-[#FF6B6B] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                      <p className="text-white font-black text-lg mb-2">ERROR</p>
-                      <p className="text-white font-bold">{message.error}</p>
+                    <div className="p-6 bg-[#FCA5A5] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                      <p className="text-black font-black text-lg mb-2">ERROR</p>
+                      <p className="text-black font-bold">{message.error}</p>
                     </div>
                   )}
                 </div>
@@ -116,19 +140,33 @@ export default function ChatInterface({ conversation, onSendMessage, loading }) 
       {/* Input Area */}
       <div className="border-t-4 border-black bg-white p-6 flex-shrink-0">
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+          {isOverLimit && (
+            <div className="mb-4 p-4 bg-[#FFE66D] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <p className="font-black text-lg mb-2">⚠️ Daily Limit Reached!</p>
+              <p className="font-bold mb-3">You've used all {usageStats.daily_limit} queries for today.</p>
+              <button
+                type="button"
+                onClick={() => setShowUpgradeModal(true)}
+                className="px-6 py-2 bg-[#FF6B6B] text-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] font-black"
+              >
+                UPGRADE TO PRO
+              </button>
+            </div>
+          )}
+          
           <div className="flex space-x-4">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask your question... (10-2000 characters)"
-              className="flex-1 px-4 py-3 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] resize-none font-medium transition-all"
+              placeholder={isOverLimit ? "Daily limit reached. Upgrade to continue..." : "Ask your question... (10-2000 characters)"}
+              className="flex-1 px-4 py-3 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] resize-none font-medium transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
               rows="3"
-              disabled={loading}
+              disabled={loading || isOverLimit}
             />
             <button
               type="submit"
-              disabled={loading || !input.trim() || input.trim().length < 10}
+              disabled={loading || !input.trim() || input.trim().length < 10 || isOverLimit}
               className="px-8 py-3 bg-[#FF6B6B] text-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all font-black text-lg"
             >
               {loading ? (
@@ -142,10 +180,19 @@ export default function ChatInterface({ conversation, onSendMessage, loading }) 
             </button>
           </div>
           <p className="text-sm font-bold mt-3 text-gray-600">
-            Press Enter to send • Shift+Enter for new line
+            {isOverLimit ? (
+              <span className="text-[#FF6B6B]">Upgrade to Pro for 100 queries/day</span>
+            ) : (
+              'Press Enter to send • Shift+Enter for new line'
+            )}
           </p>
         </form>
       </div>
+      
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <UpgradeModal onClose={() => setShowUpgradeModal(false)} />
+      )}
     </div>
   )
 }

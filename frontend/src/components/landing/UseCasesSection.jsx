@@ -23,7 +23,7 @@ export default function UseCasesSection() {
       title: 'CONTENT CREATION',
       description: 'Generate well-rounded content with diverse AI input',
       example: 'Blog posts, technical docs, marketing copy, scripts',
-      color: '#FF6B6B',
+      color: '#DDD6FE',
       icon: '03'
     },
     {

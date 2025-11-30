@@ -20,7 +20,7 @@ export default function FeaturesSection() {
       icon: '02'
     },
     {
-      color: '#FF6B6B',
+      color: '#DDD6FE',
       title: 'SYNTHESIS',
       description: 'A lead model combines the best insights into one comprehensive answer',
       stat: '1 Answer',

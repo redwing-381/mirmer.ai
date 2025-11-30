@@ -29,7 +29,7 @@ export default function HeroSection() {
     },
     {
       id: 3,
-      color: '#FF6B6B',
+      color: '#DDD6FE',
       title: 'STAGE 3',
       subtitle: 'Chairman Synthesizes',
       description: 'Final answer combines the best insights',

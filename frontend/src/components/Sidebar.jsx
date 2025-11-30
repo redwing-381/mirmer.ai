@@ -1,6 +1,17 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Settings } from 'lucide-react'
 import UsageStats from './UsageStats'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './ui/AlertDialog'
 
 /**
  * Sidebar Component
@@ -18,6 +29,21 @@ export default function Sidebar({
   user
 }) {
   const navigate = useNavigate()
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [conversationToDelete, setConversationToDelete] = useState(null)
+  
+  const handleDeleteClick = (conversationId) => {
+    setConversationToDelete(conversationId)
+    setDeleteDialogOpen(true)
+  }
+  
+  const handleConfirmDelete = () => {
+    if (conversationToDelete) {
+      onDeleteConversation(conversationToDelete)
+      setConversationToDelete(null)
+    }
+  }
+  
   const formatDate = (isoString) => {
     if (!isoString) return ''
     const date = new Date(isoString)
@@ -86,9 +112,7 @@ export default function Sidebar({
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      if (window.confirm('Delete this conversation?')) {
-                        onDeleteConversation(conversation.id)
-                      }
+                      handleDeleteClick(conversation.id)
                     }}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-[#FF6B6B] border-2 border-black text-white hover:bg-[#ff5252] opacity-0 group-hover:opacity-100 transition-opacity font-black text-xs"
                     title="Delete conversation"
@@ -112,6 +136,24 @@ export default function Sidebar({
           Settings
         </button>
       </div>
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this conversation and all its messages.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

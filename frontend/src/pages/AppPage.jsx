@@ -18,6 +18,7 @@ function AppPage() {
   const [currentConversation, setCurrentConversation] = useState(null)
   const [messageLoading, setMessageLoading] = useState(false)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
+  const [usageStats, setUsageStats] = useState(null)
 
   // Listen for auth state changes
   useEffect(() => {
@@ -45,12 +46,23 @@ function AppPage() {
     }
   }, [searchParams, setSearchParams])
 
-  // Load conversations when user logs in
+  // Load conversations and usage stats when user logs in
   useEffect(() => {
     if (user) {
       loadConversations()
+      loadUsageStats()
     }
   }, [user])
+
+  const loadUsageStats = async () => {
+    if (!user) return
+    try {
+      const stats = await api.getUsageStats(user.uid)
+      setUsageStats(stats)
+    } catch (error) {
+      console.error('Error loading usage stats:', error)
+    }
+  }
 
   // Load current conversation when ID changes
   useEffect(() => {
@@ -111,6 +123,12 @@ function AppPage() {
       return
     }
 
+    // Check usage limits before sending
+    if (usageStats && usageStats.daily_queries_used >= usageStats.daily_limit) {
+      alert('Daily query limit reached! Please upgrade to Pro for more queries.')
+      return
+    }
+
     setMessageLoading(true)
 
     const userMessage = {
@@ -147,6 +165,7 @@ function AppPage() {
       )
 
       loadConversations()
+      loadUsageStats() // Refresh usage stats after sending message
     } catch (error) {
       console.error('Error sending message:', error)
     } finally {
@@ -237,7 +256,13 @@ function AppPage() {
   }
 
   return (
-    <div className="flex h-screen bg-[#f5f5f5] overflow-hidden">
+    <div className="flex h-screen bg-[#f5f5f5] overflow-hidden" style={{
+      backgroundImage: `
+        linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px)
+      `,
+      backgroundSize: '20px 20px'
+    }}>
       {/* Payment Success Notification */}
       {paymentSuccess && (
         <div className="fixed top-4 right-4 z-50 bg-[#4ECDC4] text-black px-6 py-4 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-slide-in">
@@ -294,6 +319,7 @@ function AppPage() {
           conversation={currentConversation}
           onSendMessage={handleSendMessage}
           loading={messageLoading}
+          usageStats={usageStats}
         />
       </div>
     </div>

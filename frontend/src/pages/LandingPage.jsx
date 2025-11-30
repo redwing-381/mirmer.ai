@@ -38,7 +38,13 @@ function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white" style={{
+      backgroundImage: `
+        linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px)
+      `,
+      backgroundSize: '20px 20px'
+    }}>
       <Navigation user={user} />
       
       <main className="pt-16">
