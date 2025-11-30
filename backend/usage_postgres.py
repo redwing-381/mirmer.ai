@@ -139,13 +139,15 @@ def get_usage_stats(user_id: str) -> Dict:
             return stats
             
         except Exception as e:
-            logger.error(f"Error getting usage stats for {user_id}: {e}")
+            logger.error(f"Error getting usage stats for {user_id}: {e}", exc_info=True)
             # Return default stats on error
             return {
                 'user_id': user_id,
                 'tier': 'free',
+                'daily_queries_used': 0,  # Frontend expects this
                 'daily_used': 0,
                 'daily_limit': 10,
+                'monthly_queries_used': 0,  # Frontend expects this
                 'monthly_used': 0,
                 'monthly_limit': 100,
                 'total_queries': 0
@@ -182,9 +184,14 @@ def increment_usage(user_id: str) -> bool:
                     total_queries=0
                 )
                 session.add(usage)
+                # Flush to get the ID assigned
+                session.flush()
             
             # Reset counters if needed
             reset_if_needed(usage, session)
+            
+            # Refresh to ensure we have latest data
+            session.refresh(usage)
             
             # Log before increment
             logger.info(f"📈 Before increment - daily: {usage.daily_used}, monthly: {usage.monthly_used}, total: {usage.total_queries}")
@@ -195,8 +202,12 @@ def increment_usage(user_id: str) -> bool:
             usage.total_queries += 1
             usage.updated_at = datetime.utcnow()
             
-            # Commit to database
+            # Commit to database with explicit flush
+            session.flush()
             session.commit()
+            
+            # Verify the increment worked
+            session.refresh(usage)
             
             # Log after commit
             end_time = datetime.utcnow()
@@ -208,6 +219,8 @@ def increment_usage(user_id: str) -> bool:
         except Exception as e:
             session.rollback()
             logger.error(f"❌ Error incrementing usage for {user_id}: {e}", exc_info=True)
+            import traceback
+            logger.error(f"❌ Full traceback: {traceback.format_exc()}")
             return False
 
 
