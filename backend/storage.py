@@ -11,7 +11,7 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 
 if DATABASE_URL:
     logger.info("✓ Using PostgreSQL storage backend (production)")
-    from storage_postgres import *
+    from backend.storage_postgres import *
 else:
     logger.info("✓ Using JSON file storage backend (local development)")
-    from storage_json import *
+    from backend.storage_json import *

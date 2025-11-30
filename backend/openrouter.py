@@ -4,7 +4,7 @@ OpenRouter API client for querying multiple LLM models.
 import httpx
 import logging
 from typing import Dict, List, Optional, Any
-from config import OPENROUTER_API_URL, OPENROUTER_API_KEY
+from backend.config import OPENROUTER_API_URL, OPENROUTER_API_KEY
 
 logger = logging.getLogger(__name__)
 

@@ -7,7 +7,7 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 from pathlib import Path
-from config import DATA_DIR
+from backend.config import DATA_DIR
 
 logger = logging.getLogger(__name__)
 

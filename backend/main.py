@@ -2,8 +2,12 @@
 FastAPI backend for Mirmer AI multi-LLM consultation system.
 """
 import logging
+import os
+from pathlib import Path
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional
 
@@ -31,33 +35,53 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Serve frontend static files in production
+FRONTEND_DIST = Path(__file__).parent.parent / "frontend" / "dist"
+if FRONTEND_DIST.exists():
+    logger.info(f"✓ Serving frontend from {FRONTEND_DIST}")
+    app.mount("/assets", StaticFiles(directory=FRONTEND_DIST / "assets"), name="assets")
+else:
+    logger.warning(f"⚠️  Frontend dist directory not found at {FRONTEND_DIST}")
+
 
 # Startup event - initialize database if using PostgreSQL
 @app.on_event("startup")
 async def startup_event():
     """Initialize database on application startup."""
     import os
-    from database import init_db, check_connection
+    from backend.database import init_db, check_connection
     
     DATABASE_URL = os.getenv('DATABASE_URL')
+    IS_PRODUCTION = os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('VERCEL')
     
-    if DATABASE_URL:
-        logger.info("🔧 Initializing PostgreSQL database...")
-        
-        # Check connection
-        if check_connection():
-            logger.info("✓ Database connection successful")
-            
-            # Initialize tables
-            if init_db():
-                logger.info("✓ Database tables initialized")
-            else:
-                logger.error("✗ Failed to initialize database tables")
+    if not DATABASE_URL:
+        if IS_PRODUCTION:
+            logger.error("✗ CRITICAL: DATABASE_URL not set in production environment!")
+            logger.error("✗ Application cannot start without database configuration")
+            raise RuntimeError("DATABASE_URL environment variable is required in production")
         else:
-            logger.error("✗ Database connection failed")
-            logger.warning("⚠️  Application will continue but database operations may fail")
+            logger.info("ℹ️  No DATABASE_URL found - using JSON file storage (development mode)")
+            return
+    
+    logger.info("🔧 Initializing PostgreSQL database...")
+    
+    # Check connection
+    if check_connection():
+        logger.info("✓ Database connection successful")
+        
+        # Initialize tables
+        if init_db():
+            logger.info("✓ Database tables initialized")
+        else:
+            logger.error("✗ Failed to initialize database tables")
+            if IS_PRODUCTION:
+                raise RuntimeError("Failed to initialize database tables")
     else:
-        logger.info("ℹ️  No DATABASE_URL found - using JSON file storage")
+        logger.error("✗ Database connection failed")
+        if IS_PRODUCTION:
+            raise RuntimeError("Database connection failed in production")
+        else:
+            logger.warning("⚠️  Application will continue but database operations may fail")
 
 
 # Pydantic models for requests/responses
@@ -98,11 +122,11 @@ if __name__ == "__main__":
 
 
 
-import storage
-import usage
-from payments import PaymentService, RAZORPAY_PLAN_IDS
+from backend import storage
+from backend import usage
+from backend.payments import PaymentService, RAZORPAY_PLAN_IDS
 from fastapi import Request
-from database import get_db
+from backend.database import get_db
 import json
 
 
@@ -164,7 +188,7 @@ async def get_conversation(conversation_id: str, x_user_id: str = Header(...)):
 
 import json
 from fastapi.responses import StreamingResponse
-import council
+from backend import council
 
 
 @app.post("/api/conversations/{conversation_id}/message/stream")
@@ -425,3 +449,19 @@ async def razorpay_webhook(request: Request):
     except Exception as e:
         logger.error(f"Error handling webhook: {str(e)}")
         raise HTTPException(status_code=500, detail="Webhook handler failed")
+
+
+# Catch-all route to serve frontend for SPA routing (must be last)
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    """
+    Serve frontend index.html for all non-API routes to support SPA routing.
+    This handles page reloads and direct navigation to app routes.
+    """
+    if FRONTEND_DIST.exists():
+        index_file = FRONTEND_DIST / "index.html"
+        if index_file.exists():
+            return FileResponse(index_file)
+    
+    # If frontend not found, return 404
+    raise HTTPException(status_code=404, detail="Frontend not found")

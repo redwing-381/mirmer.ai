@@ -4,8 +4,8 @@ PostgreSQL-based usage tracking for rate limiting and statistics.
 import logging
 from datetime import date, datetime
 from typing import Dict, Tuple
-from database import SessionLocal
-from models import Usage
+from backend.database import SessionLocal
+from backend.models import Usage
 
 logger = logging.getLogger(__name__)
 
