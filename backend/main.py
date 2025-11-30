@@ -116,6 +116,23 @@ async def get_usage(x_user_id: str = Header(...)):
         raise HTTPException(status_code=500, detail="Failed to get usage stats")
 
 
+@app.post("/api/usage/test-increment")
+async def test_increment(x_user_id: str = Header(...)):
+    """Test endpoint to manually increment usage (for debugging)."""
+    try:
+        logger.info(f"🧪 TEST: Incrementing usage for user: {x_user_id}")
+        success = usage.increment_usage(x_user_id)
+        stats = usage.get_usage_stats(x_user_id)
+        return {
+            "success": success,
+            "stats": stats,
+            "message": "Increment test completed"
+        }
+    except Exception as e:
+        logger.error(f"Error in test increment: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
