@@ -66,9 +66,9 @@ export default function ChatInterface({ conversation, onSendMessage, loading }) 
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-[#f5f5f5]">
+    <div className="flex-1 flex flex-col bg-[#f5f5f5] min-h-0">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6 min-h-0">
         <div className="max-w-4xl mx-auto space-y-6">
           {conversation.messages?.map((message, index) => (
             <div key={index}>
@@ -114,7 +114,7 @@ export default function ChatInterface({ conversation, onSendMessage, loading }) 
       </div>
 
       {/* Input Area */}
-      <div className="border-t-4 border-black bg-white p-6">
+      <div className="border-t-4 border-black bg-white p-6 flex-shrink-0">
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
           <div className="flex space-x-4">
             <textarea

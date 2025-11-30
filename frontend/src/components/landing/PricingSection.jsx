@@ -11,6 +11,7 @@ export default function PricingSection() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [userEmail, setUserEmail] = useState(null)
   const [userId, setUserId] = useState(null)
+  const [hoveredCard, setHoveredCard] = useState(null)
 
   const handleGetStarted = async (tier) => {
     try {
@@ -101,15 +102,19 @@ export default function PricingSection() {
           {pricingTiers.map((tier, index) => (
             <Card 
               key={index}
-              className={`relative ${
+              className={`relative transition-all duration-300 cursor-pointer ${
                 tier.highlighted 
                   ? 'bg-[#FFE66D] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]' 
-                  : 'shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'
+                  : hoveredCard === index
+                    ? 'shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] -translate-y-2'
+                    : 'shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'
               }`}
+              onMouseEnter={() => setHoveredCard(index)}
+              onMouseLeave={() => setHoveredCard(null)}
             >
               {tier.highlighted && (
-                <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-[#FF6B6B] text-white border-4 border-black px-6 py-2 font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 z-10">
+                  <div className="bg-[#FF6B6B] text-white border-4 border-black px-6 py-2 font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-pulse">
                     RECOMMENDED
                   </div>
                 </div>
@@ -119,7 +124,9 @@ export default function PricingSection() {
                 <CardTitle className="text-3xl">{tier.name.toUpperCase()}</CardTitle>
                 <CardDescription className="font-bold text-base">{tier.description}</CardDescription>
                 <div className="mt-6">
-                  <span className="text-5xl font-black">{tier.price}</span>
+                  <span className={`text-5xl font-black transition-all duration-300 ${
+                    hoveredCard === index ? 'text-6xl' : ''
+                  }`}>{tier.price}</span>
                   <span className="text-gray-600 font-black text-xl">{tier.period}</span>
                 </div>
               </CardHeader>
@@ -127,7 +134,13 @@ export default function PricingSection() {
               <CardContent>
                 <ul className="space-y-4">
                   {tier.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start">
+                    <li 
+                      key={idx} 
+                      className={`flex items-start transition-all duration-300 ${
+                        hoveredCard === index ? 'translate-x-2' : ''
+                      }`}
+                      style={{ transitionDelay: `${idx * 50}ms` }}
+                    >
                       <span className="text-[#4ECDC4] mr-3 font-black text-xl">✓</span>
                       <span className="font-bold text-gray-700">{feature}</span>
                     </li>
@@ -137,11 +150,11 @@ export default function PricingSection() {
 
               <CardFooter>
                 <Button 
-                  className={`w-full font-black text-lg ${
+                  className={`w-full font-black text-lg transition-all duration-300 ${
                     tier.highlighted 
                       ? 'bg-[#FF6B6B] hover:bg-[#ff5252]' 
                       : 'bg-[#4ECDC4] hover:bg-[#3dbdb3]'
-                  }`}
+                  } ${hoveredCard === index ? 'scale-105' : ''}`}
                   onClick={() => handleGetStarted(tier.name.toLowerCase())}
                 >
                   {tier.cta.toUpperCase()}
@@ -149,6 +162,13 @@ export default function PricingSection() {
               </CardFooter>
             </Card>
           ))}
+        </div>
+
+        {/* Comparison tooltip */}
+        <div className="mt-12 text-center">
+          <div className="inline-block bg-white border-4 border-black px-8 py-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <p className="font-black text-lg">ALL PLANS INCLUDE THE 3-STAGE COUNCIL PROCESS</p>
+          </div>
         </div>
       </div>
 

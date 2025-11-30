@@ -237,7 +237,7 @@ function AppPage() {
   }
 
   return (
-    <div className="flex h-screen bg-[#f5f5f5]">
+    <div className="flex h-screen bg-[#f5f5f5] overflow-hidden">
       {/* Payment Success Notification */}
       {paymentSuccess && (
         <div className="fixed top-4 right-4 z-50 bg-[#4ECDC4] text-black px-6 py-4 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-slide-in">
@@ -250,18 +250,22 @@ function AppPage() {
         </div>
       )}
 
-      <Sidebar
-        conversations={conversations}
-        currentConversationId={currentConversationId}
-        onSelectConversation={setCurrentConversationId}
-        onNewConversation={handleNewConversation}
-        onDeleteConversation={handleDeleteConversation}
-        userId={user.uid}
-        user={user}
-      />
+      {/* Fixed Sidebar */}
+      <div className="flex-shrink-0">
+        <Sidebar
+          conversations={conversations}
+          currentConversationId={currentConversationId}
+          onSelectConversation={setCurrentConversationId}
+          onNewConversation={handleNewConversation}
+          onDeleteConversation={handleDeleteConversation}
+          userId={user.uid}
+          user={user}
+        />
+      </div>
 
-      <div className="flex-1 flex flex-col">
-        <div className="bg-white border-b-4 border-black p-6">
+      {/* Scrollable Chat Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div className="bg-white border-b-4 border-black p-6 flex-shrink-0">
           <div className="flex items-center justify-between">
             <h1 className="text-4xl font-black">
               MIRMER AI
