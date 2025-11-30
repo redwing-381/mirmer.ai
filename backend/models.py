@@ -4,7 +4,7 @@ SQLAlchemy database models for PostgreSQL storage.
 from datetime import datetime, date
 from sqlalchemy import Column, String, Integer, Text, DateTime, Date, JSON, ForeignKey, Index
 from sqlalchemy.orm import relationship
-from backend.database import Base
+from database import Base
 
 
 class Conversation(Base):
