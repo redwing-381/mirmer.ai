@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "export PYTHONPATH=/app:$PYTHONPATH && python backend/init_database.py && cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT",
+    "startCommand": "bash backend/start_production.sh",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
