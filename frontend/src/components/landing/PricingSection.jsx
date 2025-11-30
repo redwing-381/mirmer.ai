@@ -1,24 +1,49 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../ui/Card'
 import { Button } from '../ui/Button'
 import { Badge } from '../ui/Badge'
 import AuthModal from '../AuthModal'
 import UpgradeModal from '../UpgradeModal'
+import { auth } from '../../firebase'
+import { onAuthStateChanged } from 'firebase/auth'
 
 export default function PricingSection() {
+  const navigate = useNavigate()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
-  const [userEmail, setUserEmail] = useState(null)
-  const [userId, setUserId] = useState(null)
+  const [user, setUser] = useState(null)
   const [hoveredCard, setHoveredCard] = useState(null)
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser)
+    })
+    return () => unsubscribe()
+  }, [])
 
   const handleGetStarted = (tier) => {
     if (tier === 'enterprise') {
       // Redirect to contact page or open email
       window.location.href = 'mailto:sales@mirmer.ai?subject=Enterprise Plan Inquiry'
+    } else if (tier === 'pro') {
+      // For Pro tier
+      if (user) {
+        // User is logged in, show upgrade modal
+        setShowUpgradeModal(true)
+      } else {
+        // User not logged in, show auth modal
+        setShowAuthModal(true)
+      }
     } else {
-      // Show auth modal for Free and Pro tiers
-      setShowAuthModal(true)
+      // For Free tier
+      if (user) {
+        // User is logged in, redirect to app
+        navigate('/app')
+      } else {
+        // User not logged in, show auth modal
+        setShowAuthModal(true)
+      }
     }
   }
 
@@ -40,7 +65,7 @@ export default function PricingSection() {
     },
     {
       name: 'Pro',
-      price: '$19',
+      price: '₹1499',
       period: '/month',
       description: 'For power users who need more',
       features: [
@@ -164,8 +189,6 @@ export default function PricingSection() {
       <UpgradeModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
-        userEmail={userEmail}
-        userId={userId}
       />
     </section>
   )

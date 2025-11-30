@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './pages/LandingPage'
 import AppPage from './pages/AppPage'
 import SettingsPage from './pages/SettingsPage'
-import TestPaymentPage from './pages/TestPaymentPage'
 import { useEffect, useState } from 'react'
 import { auth } from './firebase'
 
@@ -37,11 +36,7 @@ function App() {
         />
         <Route 
           path="/settings" 
-          element={user ? <SettingsPage user={user} /> : <Navigate to="/" replace />} 
-        />
-        <Route 
-          path="/test-payment" 
-          element={user ? <TestPaymentPage /> : <Navigate to="/" replace />} 
+          element={user ? <SettingsPage /> : <Navigate to="/" replace />} 
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

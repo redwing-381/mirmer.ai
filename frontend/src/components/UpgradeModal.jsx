@@ -1,12 +1,18 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Check, Loader2 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './ui/Card'
-import { Button } from './ui/Button'
 import { Badge } from './ui/Badge'
+import { auth } from '../firebase'
 
-export default function UpgradeModal({ isOpen, onClose, userEmail, userId }) {
+export default function UpgradeModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    const currentUser = auth.currentUser
+    setUser(currentUser)
+  }, [isOpen])
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -23,47 +29,71 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, userId }) {
     setError(null)
 
     try {
+      console.log('Starting upgrade process...')
+      console.log('User:', user)
+      console.log('API URL:', import.meta.env.VITE_API_URL)
+      console.log('Razorpay Key:', import.meta.env.VITE_RAZORPAY_KEY_ID)
+
+      if (!user) {
+        throw new Error('Please sign in to upgrade')
+      }
+
       // Load Razorpay script
+      console.log('Loading Razorpay script...')
       const scriptLoaded = await loadRazorpayScript()
       if (!scriptLoaded) {
         throw new Error('Failed to load Razorpay SDK')
       }
+      console.log('Razorpay script loaded successfully')
 
       // Create subscription
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/payments/create-subscription`, {
+      const apiUrl = import.meta.env.VITE_API_URL || '/api'
+      const fullUrl = `${apiUrl}/payments/create-subscription`
+      console.log('Creating subscription at:', fullUrl)
+
+      const response = await fetch(fullUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-Id': userId,
-          'X-User-Email': userEmail
+          'X-User-Id': user.uid,
+          'X-User-Email': user.email
         }
       })
 
+      console.log('Response status:', response.status)
       const data = await response.json()
+      console.log('Response data:', data)
 
       if (!response.ok) {
         throw new Error(data.detail || 'Failed to create subscription')
       }
 
       // Open Razorpay checkout
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID
+      if (!razorpayKey) {
+        throw new Error('Razorpay key not configured. Please contact support.')
+      }
+
+      console.log('Opening Razorpay checkout...')
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        key: razorpayKey,
         subscription_id: data.subscription_id,
         name: 'Mirmer AI',
         description: 'Pro Plan Subscription',
-        image: '/logo.png', // Add your logo
         prefill: {
-          email: userEmail,
+          email: user?.email,
         },
         theme: {
-          color: '#3B82F6'
+          color: '#4ECDC4'
         },
-        handler: function (response) {
+        handler: function (paymentResponse) {
+          console.log('Payment successful:', paymentResponse)
           // Payment successful
           window.location.href = `${window.location.origin}/app?payment=success`
         },
         modal: {
           ondismiss: function() {
+            console.log('Payment modal dismissed')
             setLoading(false)
           }
         }
@@ -71,9 +101,10 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, userId }) {
 
       const razorpay = new window.Razorpay(options)
       razorpay.open()
+      console.log('Razorpay checkout opened')
     } catch (err) {
       console.error('Upgrade error:', err)
-      setError(err.message)
+      setError(err.message || 'An error occurred. Please try again.')
       setLoading(false)
     }
   }
@@ -148,23 +179,21 @@ export default function UpgradeModal({ isOpen, onClose, userEmail, userId }) {
             </CardContent>
 
             <CardFooter>
-              <Button
-                className="w-full"
-                variant="primary"
+              <button
                 onClick={handleUpgrade}
                 disabled={loading}
+                className="w-full px-8 py-4 bg-[#FF6B6B] text-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all font-black text-lg"
               >
                 {loading ? (
-                  <>
+                  <span className="flex items-center justify-center">
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     Processing...
-                  </>
+                  </span>
                 ) : (
                   'Upgrade to Pro - ₹1,499/month'
                 )}
-              </Button>
-            </CardFooter>
-          </Card>
+              </button>
+            </CardFooter>          </Card>
 
           <div className="mt-6 text-center text-sm text-gray-600">
             <p>Questions? Contact us at support@mirmer.ai</p>

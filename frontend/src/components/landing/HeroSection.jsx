@@ -33,8 +33,7 @@ export default function HeroSection() {
       title: 'STAGE 3',
       subtitle: 'Chairman Synthesizes',
       description: 'Final answer combines the best insights',
-      details: 'A lead model creates the optimal response',
-      textWhite: true
+      details: 'A lead model creates the optimal response'
     }
   ]
 
