@@ -122,15 +122,17 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* Settings Button */}
+      {/* User Profile Menu */}
       <div className="p-4 border-t-4 border-black bg-white">
-        <button
-          onClick={() => navigate('/settings')}
-          className="w-full px-4 py-3 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all font-black flex items-center justify-center"
-        >
-          <Settings className="w-4 h-4 mr-2" />
-          Settings
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => navigate('/settings')}
+            className="w-full px-4 py-3 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all font-black flex items-center justify-center"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Settings
+          </button>
+        </div>
       </div>
       
       {/* Delete Confirmation Dialog */}

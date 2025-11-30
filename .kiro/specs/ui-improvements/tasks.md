@@ -39,7 +39,7 @@
   - **Property 6: Sidebar collapse animation**
   - **Validates: Requirements 4.2**
 
-- [ ] 4. Enhance in-chat limit warning
+- [x] 4. Enhance in-chat limit warning
   - Update ChatInterface.jsx limit warning styling
   - Make warning more prominent with yellow background
   - Add clear messaging for which limit was reached
@@ -47,11 +47,11 @@
   - Test warning appears correctly for daily and monthly limits
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 4.1 Write property test for limit warning visibility
+- [x] 4.1 Write property test for limit warning visibility
   - **Property 4: Limit warning visibility**
   - **Validates: Requirements 3.1, 3.5**
 
-- [ ] 5. Create settings page sidebar navigation
+- [x] 5. Create settings page sidebar navigation
   - Restructure SettingsPage.jsx with sidebar layout
   - Create tab navigation component with Usage, Subscription, Profile tabs
   - Implement tab switching logic
@@ -59,15 +59,15 @@
   - Style tabs with neobrutalism design
   - _Requirements: 1.1, 1.2, 5.1, 5.4, 5.5_
 
-- [ ] 5.1 Write property test for settings tab persistence
+- [x] 5.1 Write property test for settings tab persistence
   - **Property 1: Settings tab persistence**
   - **Validates: Requirements 1.2**
 
-- [ ] 5.2 Write property test for settings content display
+- [x] 5.2 Write property test for settings content display
   - **Property 7: Settings content display**
   - **Validates: Requirements 1.2**
 
-- [ ] 6. Implement Usage tab content
+- [x] 6. Implement Usage tab content
   - Create detailed usage statistics display
   - Show daily and monthly progress bars
   - Display query counts and limits
@@ -75,7 +75,7 @@
   - Style with neobrutalism design
   - _Requirements: 1.3, 5.1, 5.2_
 
-- [ ] 7. Implement Subscription tab content
+- [x] 7. Implement Subscription tab content
   - Move current subscription display to tab
   - Show current plan with benefits
   - Display upgrade/cancel options
@@ -83,7 +83,7 @@
   - Style with neobrutalism design
   - _Requirements: 1.4, 5.1, 5.2_
 
-- [ ] 8. Implement Profile tab content
+- [x] 8. Implement Profile tab content
   - Create profile information display
   - Show user name, email, and photo
   - Add account settings section
@@ -91,14 +91,14 @@
   - Style with neobrutalism design
   - _Requirements: 1.5, 5.1, 5.2_
 
-- [ ] 9. Update frontend to refresh stats after message send
+- [x] 9. Update frontend to refresh stats after message send
   - Listen for 'complete' SSE event in ChatInterface
   - Trigger stats refresh in AppPage after message completion
   - Maintain existing 500ms delay for consistency
   - Test that stats update correctly in UI
   - _Requirements: 6.4, 6.5_
 
-- [ ] 10. Add comprehensive error handling
+- [x] 10. Add comprehensive error handling
   - Handle localStorage unavailability gracefully
   - Add error states for usage stats fetch failures
   - Implement retry logic for failed stats updates
@@ -106,24 +106,24 @@
   - Test error scenarios
   - _Requirements: 2.3, 6.3_
 
-- [ ] 11. Checkpoint - Ensure all tests pass
+- [x] 11. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 12. Add accessibility improvements
+- [x] 12. Add accessibility improvements
   - Add ARIA labels to sidebar toggle and tabs
   - Ensure keyboard navigation works for all interactive elements
   - Test with screen readers
   - Verify color contrast meets WCAG AA standards
   - _Requirements: 5.5_
 
-- [ ] 13. Performance optimization
+- [x] 13. Performance optimization
   - Use React.memo for settings tab content
   - Optimize sidebar animation with CSS transforms
   - Minimize localStorage access
   - Test performance with React DevTools
   - _Requirements: 4.2_
 
-- [ ] 14. Final integration testing
+- [x] 14. Final integration testing
   - Test complete user flow: send message → stats update → UI reflects change
   - Test sidebar collapse → persist → reload → restore
   - Test settings tabs → switch → persist → reload → restore

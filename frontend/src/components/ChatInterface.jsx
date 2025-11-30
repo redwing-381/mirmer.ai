@@ -17,7 +17,6 @@ export default function ChatInterface({ conversation, onSendMessage, loading, us
 
   // Check if user has reached their limit
   const isOverLimit = usageStats && usageStats.daily_queries_used >= usageStats.daily_limit
-  const isPro = usageStats && usageStats.tier === 'pro'
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
