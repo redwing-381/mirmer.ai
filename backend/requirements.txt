@@ -46,3 +46,7 @@ typing-inspection==0.4.2
     # via pydantic
 uvicorn==0.38.0
     # via mirmer-ai-backend (pyproject.toml)
+
+# Database dependencies
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0

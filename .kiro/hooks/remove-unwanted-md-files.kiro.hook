@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Remove Unwanted MD Files",
+  "description": "Detects when markdown files are created in the codebase and removes them, excluding README.md which is allowed",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A markdown file has been detected in the codebase. Check if it's README.md - if it is, ignore it. If it's any other .md file, delete it immediately as the user does not want markdown files in their codebase except for README.md. List which file you're removing and confirm the deletion."
+  }
+}
