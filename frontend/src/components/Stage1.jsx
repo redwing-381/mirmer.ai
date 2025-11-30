@@ -12,10 +12,10 @@ export default function Stage1({ responses, loading }) {
 
   if (loading) {
     return (
-      <div className="p-6 bg-blue-50 rounded-lg">
+      <div className="p-6 bg-[#4ECDC4] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <div className="flex items-center space-x-3">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-          <span className="text-blue-900 font-medium">Stage 1: Collecting individual responses...</span>
+          <div className="animate-spin rounded-full h-6 w-6 border-4 border-black border-t-transparent"></div>
+          <span className="text-black font-black text-lg">STAGE 1: Collecting individual responses...</span>
         </div>
       </div>
     )
@@ -27,12 +27,12 @@ export default function Stage1({ responses, loading }) {
 
   return (
     <div className="mb-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-3">
-        Stage 1: Individual Responses
+      <h3 className="text-2xl font-black mb-4">
+        STAGE 1: Individual Responses
       </h3>
       
       {/* Tab buttons */}
-      <div className="flex space-x-2 mb-4 border-b border-gray-200">
+      <div className="flex flex-wrap gap-2 mb-4">
         {responses.map((response, index) => {
           const modelName = response.model.split('/')[1] || response.model
           const isActive = activeTab === index
@@ -41,10 +41,10 @@ export default function Stage1({ responses, loading }) {
             <button
               key={index}
               onClick={() => setActiveTab(index)}
-              className={`px-4 py-2 font-medium transition-colors ${
+              className={`px-4 py-2 font-black border-4 border-black transition-all ${
                 isActive
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-[#4ECDC4] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+                  : 'bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]'
               }`}
             >
               {modelName}
@@ -54,8 +54,8 @@ export default function Stage1({ responses, loading }) {
       </div>
 
       {/* Active tab content */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="prose max-w-none">
+      <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6">
+        <div className="prose max-w-none prose-headings:font-black prose-strong:font-black">
           <ReactMarkdown>{responses[activeTab].response}</ReactMarkdown>
         </div>
       </div>

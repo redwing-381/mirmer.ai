@@ -27,10 +27,10 @@ export default function Stage2({ rankings, metadata, loading }) {
 
   if (loading) {
     return (
-      <div className="p-6 bg-purple-50 rounded-lg">
+      <div className="p-6 bg-[#FFE66D] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <div className="flex items-center space-x-3">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
-          <span className="text-purple-900 font-medium">Stage 2: Collecting peer rankings...</span>
+          <div className="animate-spin rounded-full h-6 w-6 border-4 border-black border-t-transparent"></div>
+          <span className="text-black font-black text-lg">STAGE 2: Collecting peer rankings...</span>
         </div>
       </div>
     )
@@ -42,12 +42,12 @@ export default function Stage2({ rankings, metadata, loading }) {
 
   return (
     <div className="mb-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-3">
-        Stage 2: Peer Rankings
+      <h3 className="text-2xl font-black mb-4">
+        STAGE 2: Peer Rankings
       </h3>
       
       {/* Tab buttons */}
-      <div className="flex space-x-2 mb-4 border-b border-gray-200">
+      <div className="flex flex-wrap gap-2 mb-4">
         {rankings.map((ranking, index) => {
           const modelName = ranking.model.split('/')[1] || ranking.model
           const isActive = activeTab === index
@@ -56,10 +56,10 @@ export default function Stage2({ rankings, metadata, loading }) {
             <button
               key={index}
               onClick={() => setActiveTab(index)}
-              className={`px-4 py-2 font-medium transition-colors ${
+              className={`px-4 py-2 font-black border-4 border-black transition-all ${
                 isActive
-                  ? 'text-purple-600 border-b-2 border-purple-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-[#FFE66D] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+                  : 'bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]'
               }`}
             >
               {modelName}
@@ -69,25 +69,25 @@ export default function Stage2({ rankings, metadata, loading }) {
       </div>
 
       {/* Active tab content */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-4">
-        <h4 className="font-semibold text-gray-900 mb-2">
+      <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6 mb-4">
+        <h4 className="font-black text-xl mb-4">
           {rankings[activeTab].model.split('/')[1] || rankings[activeTab].model}'s Ranking
         </h4>
         
-        <div className="prose max-w-none mb-4">
+        <div className="prose max-w-none mb-4 prose-headings:font-black prose-strong:font-black">
           <ReactMarkdown>{deAnonymizeText(rankings[activeTab].ranking)}</ReactMarkdown>
         </div>
 
         {/* Parsed ranking */}
         {rankings[activeTab].parsed_ranking && rankings[activeTab].parsed_ranking.length > 0 && (
-          <div className="mt-4 p-4 bg-gray-50 rounded">
-            <p className="font-medium text-gray-700 mb-2">Parsed Ranking:</p>
-            <ol className="list-decimal list-inside space-y-1">
+          <div className="mt-4 p-4 bg-[#f5f5f5] border-4 border-black">
+            <p className="font-black text-lg mb-3">Parsed Ranking:</p>
+            <ol className="list-decimal list-inside space-y-2">
               {rankings[activeTab].parsed_ranking.map((label, idx) => {
                 const model = metadata?.label_to_model?.[label]
                 const modelName = model ? (model.split('/')[1] || model) : label
                 return (
-                  <li key={idx} className="text-gray-600">
+                  <li key={idx} className="font-bold text-base">
                     {label} ({modelName})
                   </li>
                 )
@@ -99,10 +99,9 @@ export default function Stage2({ rankings, metadata, loading }) {
 
       {/* Aggregate Rankings Leaderboard */}
       {metadata?.aggregate_rankings && metadata.aggregate_rankings.length > 0 && (
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200 p-6">
-          <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
-            <span className="text-xl mr-2">🏆</span>
-            Aggregate Rankings (Street Cred)
+        <div className="bg-[#FFE66D] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6">
+          <h4 className="font-black text-2xl mb-6">
+            Aggregate Rankings
           </h4>
           
           <div className="space-y-3">
@@ -113,23 +112,25 @@ export default function Stage2({ rankings, metadata, loading }) {
               return (
                 <div
                   key={index}
-                  className={`flex items-center justify-between p-3 rounded-lg ${
-                    isWinner ? 'bg-yellow-100 border-2 border-yellow-400' : 'bg-white'
+                  className={`flex items-center justify-between p-4 border-4 border-black ${
+                    isWinner 
+                      ? 'bg-[#4ECDC4] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]' 
+                      : 'bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
                   }`}
                 >
-                  <div className="flex items-center space-x-3">
-                    <span className={`font-bold text-lg ${isWinner ? 'text-yellow-600' : 'text-gray-500'}`}>
+                  <div className="flex items-center space-x-4">
+                    <span className={`font-black text-2xl ${isWinner ? 'text-black' : 'text-gray-600'}`}>
                       #{index + 1}
                     </span>
-                    <span className="font-medium text-gray-900">{modelName}</span>
+                    <span className="font-black text-lg">{modelName}</span>
                   </div>
                   
-                  <div className="flex items-center space-x-4 text-sm">
-                    <span className="text-gray-600">
-                      Avg Rank: <span className="font-semibold">{item.average_rank.toFixed(2)}</span>
+                  <div className="flex items-center space-x-6 text-sm">
+                    <span className="font-bold">
+                      Avg: <span className="font-black text-lg">{item.average_rank.toFixed(2)}</span>
                     </span>
-                    <span className="text-gray-600">
-                      Votes: <span className="font-semibold">{item.rankings_count}</span>
+                    <span className="font-bold">
+                      Votes: <span className="font-black text-lg">{item.rankings_count}</span>
                     </span>
                   </div>
                 </div>

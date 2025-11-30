@@ -25,43 +25,43 @@ export default function Navigation({ user }) {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b-4 border-black">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b-4 border-black shadow-[0px_4px_0px_0px_rgba(0,0,0,1)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <h1 className="text-2xl font-black">Mirmer AI</h1>
+            <h1 className="text-3xl font-black">MIRMER AI</h1>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <button
               onClick={() => scrollToSection('features')}
-              className="text-black font-bold hover:text-blue-600 transition-colors"
+              className="text-black font-black hover:text-[#4ECDC4] transition-colors text-lg"
             >
-              Features
+              FEATURES
             </button>
             <button
               onClick={() => scrollToSection('pricing')}
-              className="text-black font-bold hover:text-blue-600 transition-colors"
+              className="text-black font-black hover:text-[#FFE66D] transition-colors text-lg"
             >
-              Pricing
+              PRICING
             </button>
           </div>
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
-              <Button onClick={() => navigate('/app')}>
-                Go to App
+              <Button className="bg-[#4ECDC4] hover:bg-[#3dbdb3]" onClick={() => navigate('/app')}>
+                GO TO APP
               </Button>
             ) : (
               <>
                 <Button variant="neutral" onClick={handleSignIn}>
-                  Sign In
+                  SIGN IN
                 </Button>
-                <Button onClick={handleSignIn}>
-                  Get Started
+                <Button className="bg-[#FF6B6B] hover:bg-[#ff5252]" onClick={handleSignIn}>
+                  GET STARTED
                 </Button>
               </>
             )}
@@ -71,26 +71,25 @@ export default function Navigation({ user }) {
           <div className="md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 border-2 border-black bg-white hover:bg-gray-100"
+              className="p-3 border-4 border-black bg-white hover:bg-gray-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
             >
               <svg
                 className="h-6 w-6"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                strokeWidth={3}
               >
                 {mobileMenuOpen ? (
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
                     d="M6 18L18 6M6 6l12 12"
                   />
                 ) : (
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
                     d="M4 6h16M4 12h16M4 18h16"
                   />
                 )}
@@ -106,28 +105,28 @@ export default function Navigation({ user }) {
           <div className="px-4 pt-2 pb-4 space-y-3">
             <button
               onClick={() => scrollToSection('features')}
-              className="block w-full text-left px-3 py-2 text-black font-bold hover:bg-gray-100"
+              className="block w-full text-left px-4 py-3 text-black font-black hover:bg-[#4ECDC4] border-2 border-black transition-all"
             >
-              Features
+              FEATURES
             </button>
             <button
               onClick={() => scrollToSection('pricing')}
-              className="block w-full text-left px-3 py-2 text-black font-bold hover:bg-gray-100"
+              className="block w-full text-left px-4 py-3 text-black font-black hover:bg-[#FFE66D] border-2 border-black transition-all"
             >
-              Pricing
+              PRICING
             </button>
             <div className="pt-4 space-y-2">
               {user ? (
-                <Button className="w-full" onClick={() => navigate('/app')}>
-                  Go to App
+                <Button className="w-full bg-[#4ECDC4]" onClick={() => navigate('/app')}>
+                  GO TO APP
                 </Button>
               ) : (
                 <>
                   <Button variant="neutral" className="w-full" onClick={handleSignIn}>
-                    Sign In
+                    SIGN IN
                   </Button>
-                  <Button className="w-full" onClick={handleSignIn}>
-                    Get Started
+                  <Button className="w-full bg-[#FF6B6B]" onClick={handleSignIn}>
+                    GET STARTED
                   </Button>
                 </>
               )}

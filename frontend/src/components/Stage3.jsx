@@ -9,10 +9,10 @@ import ReactMarkdown from 'react-markdown'
 export default function Stage3({ result, loading }) {
   if (loading) {
     return (
-      <div className="p-6 bg-green-50 rounded-lg">
+      <div className="p-6 bg-[#FF6B6B] border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <div className="flex items-center space-x-3">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-600"></div>
-          <span className="text-green-900 font-medium">Stage 3: Chairman synthesizing final answer...</span>
+          <div className="animate-spin rounded-full h-6 w-6 border-4 border-black border-t-transparent"></div>
+          <span className="text-white font-black text-lg">STAGE 3: Chairman synthesizing final answer...</span>
         </div>
       </div>
     )
@@ -26,19 +26,18 @@ export default function Stage3({ result, loading }) {
 
   return (
     <div className="mb-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-        <span className="text-2xl mr-2">⚖️</span>
-        Stage 3: Chairman's Final Synthesis
+      <h3 className="text-2xl font-black mb-4">
+        STAGE 3: Chairman's Final Synthesis
       </h3>
       
-      <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg border-2 border-green-300 p-6 shadow-lg">
-        <div className="flex items-center mb-4">
-          <span className="px-3 py-1 bg-green-600 text-white text-sm font-medium rounded-full">
-            Chairman: {modelName}
+      <div className="bg-[#FF6B6B] border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-8">
+        <div className="flex items-center mb-6">
+          <span className="px-4 py-2 bg-black text-white text-sm font-black">
+            CHAIRMAN: {modelName}
           </span>
         </div>
         
-        <div className="prose max-w-none">
+        <div className="prose max-w-none prose-headings:font-black prose-strong:font-black prose-p:text-lg text-white prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white">
           <ReactMarkdown>{result.response}</ReactMarkdown>
         </div>
       </div>

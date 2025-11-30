@@ -237,17 +237,14 @@ function AppPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-[#f5f5f5]">
       {/* Payment Success Notification */}
       {paymentSuccess && (
-        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg border-4 border-green-700 animate-slide-in">
+        <div className="fixed top-4 right-4 z-50 bg-[#4ECDC4] text-black px-6 py-4 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-slide-in">
           <div className="flex items-center">
-            <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
             <div>
-              <p className="font-bold">Payment Successful!</p>
-              <p className="text-sm">Welcome to Pro! You now have 100 queries per day.</p>
+              <p className="font-black text-lg">Payment Successful!</p>
+              <p className="text-sm font-bold">Welcome to Pro! You now have 100 queries per day.</p>
             </div>
           </div>
         </div>
@@ -264,24 +261,24 @@ function AppPage() {
       />
 
       <div className="flex-1 flex flex-col">
-        <div className="bg-white border-b border-gray-200 p-4">
+        <div className="bg-white border-b-4 border-black p-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Mirmer AI
+            <h1 className="text-4xl font-black">
+              MIRMER AI
             </h1>
             
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 bg-[#4ECDC4] border-4 border-black px-4 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <img 
                   src={user.photoURL} 
                   alt={user.displayName}
-                  className="w-8 h-8 rounded-full"
+                  className="w-8 h-8 border-2 border-black"
                 />
-                <span className="text-sm text-gray-700">{user.displayName}</span>
+                <span className="text-sm font-black">{user.displayName}</span>
               </div>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all font-black"
               >
                 Logout
               </button>

@@ -39,13 +39,13 @@ export default function UsageStats({ userId, user }) {
     : (stats.monthly_used / stats.monthly_limit) * 100
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-gray-900">Usage</h3>
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+    <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-black text-lg">USAGE</h3>
+        <span className={`px-3 py-1 text-xs font-black border-2 border-black ${
           stats.tier === 'free' 
-            ? 'bg-gray-100 text-gray-700' 
-            : 'bg-blue-100 text-blue-700'
+            ? 'bg-gray-200 text-black' 
+            : 'bg-[#4ECDC4] text-black'
         }`}>
           {stats.tier.toUpperCase()}
         </span>
@@ -54,17 +54,17 @@ export default function UsageStats({ userId, user }) {
       {stats.tier === 'free' && (
         <>
           {/* Daily Usage */}
-          <div className="mb-3">
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">Today</span>
-              <span className="font-medium text-gray-900">
+          <div className="mb-4">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="font-bold">Today</span>
+              <span className="font-black">
                 {stats.daily_used} / {stats.daily_limit}
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 border-2 border-black h-4">
               <div
-                className={`h-2 rounded-full transition-all ${
-                  dailyPercent >= 80 ? 'bg-red-500' : 'bg-blue-500'
+                className={`h-full transition-all ${
+                  dailyPercent >= 80 ? 'bg-[#FF6B6B]' : 'bg-[#4ECDC4]'
                 }`}
                 style={{ width: `${Math.min(dailyPercent, 100)}%` }}
               />
@@ -72,17 +72,17 @@ export default function UsageStats({ userId, user }) {
           </div>
 
           {/* Monthly Usage */}
-          <div className="mb-3">
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">This Month</span>
-              <span className="font-medium text-gray-900">
+          <div className="mb-4">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="font-bold">This Month</span>
+              <span className="font-black">
                 {stats.monthly_used} / {stats.monthly_limit}
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 border-2 border-black h-4">
               <div
-                className={`h-2 rounded-full transition-all ${
-                  monthlyPercent >= 80 ? 'bg-red-500' : 'bg-green-500'
+                className={`h-full transition-all ${
+                  monthlyPercent >= 80 ? 'bg-[#FF6B6B]' : 'bg-[#FFE66D]'
                 }`}
                 style={{ width: `${Math.min(monthlyPercent, 100)}%` }}
               />
@@ -91,13 +91,13 @@ export default function UsageStats({ userId, user }) {
 
           {/* Upgrade CTA */}
           {(dailyPercent >= 70 || monthlyPercent >= 70) && (
-            <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-900 mb-2">
+            <div className="mt-3 p-3 bg-[#FFE66D] border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <p className="text-sm font-black mb-2">
                 Running low on queries?
               </p>
               <button 
                 onClick={() => setShowUpgradeModal(true)}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                className="text-sm font-black text-[#FF6B6B] hover:underline"
               >
                 Upgrade to Pro →
               </button>
@@ -107,9 +107,9 @@ export default function UsageStats({ userId, user }) {
       )}
 
       {stats.tier !== 'free' && (
-        <div className="text-sm text-gray-600">
-          <p>✨ Pro Plan Active</p>
-          <p className="text-xs mt-1">Total: {stats.total_queries} queries</p>
+        <div className="text-sm">
+          <p className="font-black">Pro Plan Active</p>
+          <p className="text-xs mt-1 font-bold">Total: {stats.total_queries} queries</p>
         </div>
       )}
 

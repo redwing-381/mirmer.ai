@@ -3,23 +3,23 @@ import { Card, CardContent } from '../ui/Card'
 export default function FeaturesSection() {
   const features = [
     {
-      icon: '🤖',
-      title: '4 AI Models Respond',
+      color: '#4ECDC4',
+      title: 'MULTIPLE AI MODELS',
       description: 'GPT-4, Claude, Gemini, and more each provide their unique perspective on your question'
     },
     {
-      icon: '⚖️',
-      title: 'Models Rank Each Other',
+      color: '#FFE66D',
+      title: 'PEER EVALUATION',
       description: 'Each AI evaluates and ranks the other responses for quality and accuracy'
     },
     {
-      icon: '🎯',
-      title: 'Chairman Synthesizes',
+      color: '#FF6B6B',
+      title: 'SYNTHESIS',
       description: 'A lead model combines the best insights into one comprehensive answer'
     },
     {
-      icon: '✨',
-      title: 'Collective Intelligence',
+      color: '#4ECDC4',
+      title: 'COLLECTIVE INTELLIGENCE',
       description: 'Get more balanced, well-reasoned answers than any single AI can provide'
     }
   ]
@@ -29,10 +29,10 @@ export default function FeaturesSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-black text-black mb-4">
-            How It Works
+          <h2 className="text-5xl md:text-6xl font-black text-black mb-6">
+            HOW IT WORKS
           </h2>
-          <p className="text-lg text-gray-700 font-bold max-w-2xl mx-auto">
+          <p className="text-xl text-gray-700 font-bold max-w-2xl mx-auto">
             The 3-stage council process ensures you get the best possible answer
           </p>
         </div>
@@ -42,12 +42,12 @@ export default function FeaturesSection() {
           {features.map((feature, index) => (
             <Card 
               key={index}
-              className="hover:translate-x-1 hover:translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
+              className="hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all"
+              style={{ backgroundColor: feature.color }}
             >
-              <CardContent>
-                <div className="text-5xl mb-4">{feature.icon}</div>
-                <h3 className="text-2xl font-bold mb-3">{feature.title}</h3>
-                <p className="text-gray-700">{feature.description}</p>
+              <CardContent className="p-8">
+                <h3 className="text-2xl font-black mb-4">{feature.title}</h3>
+                <p className="font-bold text-gray-800 text-lg">{feature.description}</p>
               </CardContent>
             </Card>
           ))}

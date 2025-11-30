@@ -84,14 +84,14 @@ export default function PricingSection() {
   ]
 
   return (
-    <section id="pricing" className="py-20 bg-gradient-to-br from-blue-100 to-purple-100 border-b-4 border-black">
+    <section id="pricing" className="py-20 bg-[#f5f5f5] border-b-4 border-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-black text-black mb-4">
-            Simple Pricing
+          <h2 className="text-5xl md:text-6xl font-black text-black mb-6">
+            SIMPLE PRICING
           </h2>
-          <p className="text-lg text-gray-700 font-bold max-w-2xl mx-auto">
+          <p className="text-xl text-gray-700 font-bold max-w-2xl mx-auto">
             Start free, upgrade when you need more
           </p>
         </div>
@@ -103,33 +103,33 @@ export default function PricingSection() {
               key={index}
               className={`relative ${
                 tier.highlighted 
-                  ? 'ring-4 ring-yellow-400 scale-105' 
-                  : ''
+                  ? 'bg-[#FFE66D] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]' 
+                  : 'shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'
               }`}
             >
               {tier.highlighted && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge variant="warning" className="text-sm px-4 py-1">
+                <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-[#FF6B6B] text-white border-4 border-black px-6 py-2 font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                     RECOMMENDED
-                  </Badge>
+                  </div>
                 </div>
               )}
               
               <CardHeader>
-                <CardTitle>{tier.name}</CardTitle>
-                <CardDescription>{tier.description}</CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-black">{tier.price}</span>
-                  <span className="text-gray-600 font-bold">{tier.period}</span>
+                <CardTitle className="text-3xl">{tier.name.toUpperCase()}</CardTitle>
+                <CardDescription className="font-bold text-base">{tier.description}</CardDescription>
+                <div className="mt-6">
+                  <span className="text-5xl font-black">{tier.price}</span>
+                  <span className="text-gray-600 font-black text-xl">{tier.period}</span>
                 </div>
               </CardHeader>
 
               <CardContent>
-                <ul className="space-y-3">
+                <ul className="space-y-4">
                   {tier.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start">
-                      <span className="text-green-500 mr-2 font-bold">✓</span>
-                      <span className="text-gray-700">{feature}</span>
+                      <span className="text-[#4ECDC4] mr-3 font-black text-xl">✓</span>
+                      <span className="font-bold text-gray-700">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -137,11 +137,14 @@ export default function PricingSection() {
 
               <CardFooter>
                 <Button 
-                  className="w-full"
-                  variant={tier.highlighted ? 'primary' : 'default'}
+                  className={`w-full font-black text-lg ${
+                    tier.highlighted 
+                      ? 'bg-[#FF6B6B] hover:bg-[#ff5252]' 
+                      : 'bg-[#4ECDC4] hover:bg-[#3dbdb3]'
+                  }`}
                   onClick={() => handleGetStarted(tier.name.toLowerCase())}
                 >
-                  {tier.cta}
+                  {tier.cta.toUpperCase()}
                 </Button>
               </CardFooter>
             </Card>
