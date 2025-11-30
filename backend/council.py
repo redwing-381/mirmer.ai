@@ -9,6 +9,9 @@ from config import COUNCIL_MODELS
 logger = logging.getLogger(__name__)
 
 
+import asyncio as asyncio_module
+
+
 async def stage1_collect_responses(
     user_query: str,
     api_key: Optional[str] = None
@@ -27,6 +30,9 @@ async def stage1_collect_responses(
     Requirements: 3.1, 3.2, 3.3, 3.5
     """
     logger.info(f"Stage 1: Collecting responses from {len(COUNCIL_MODELS)} models")
+    
+    # Add small delay to avoid rate limits
+    await asyncio_module.sleep(1)
     
     # Build messages list with user query
     messages = [
@@ -212,6 +218,9 @@ async def stage2_collect_rankings(
     Requirements: 4.3, 4.4
     """
     logger.info(f"Stage 2: Collecting rankings from {len(COUNCIL_MODELS)} models")
+    
+    # Add delay between stages to avoid rate limits
+    await asyncio_module.sleep(2)
     
     if not stage1_results:
         logger.error("Stage 2: No Stage 1 results to rank")
@@ -399,6 +408,9 @@ async def stage3_synthesize_final(
     Requirements: 6.2, 6.4, 6.5
     """
     logger.info(f"Stage 3: Chairman ({CHAIRMAN_MODEL}) synthesizing final answer")
+    
+    # Add delay before chairman synthesis to avoid rate limits
+    await asyncio_module.sleep(2)
     
     # Build comprehensive chairman prompt
     chairman_prompt = _build_chairman_prompt(user_query, stage1_results, stage2_results)

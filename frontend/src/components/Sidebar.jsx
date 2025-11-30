@@ -1,3 +1,5 @@
+import UsageStats from './UsageStats'
+
 /**
  * Sidebar Component
  * Displays list of conversations with titles and timestamps.
@@ -9,7 +11,8 @@ export default function Sidebar({
   currentConversationId, 
   onSelectConversation, 
   onNewConversation,
-  onDeleteConversation 
+  onDeleteConversation,
+  userId 
 }) {
   const formatDate = (isoString) => {
     if (!isoString) return ''
@@ -33,6 +36,11 @@ export default function Sidebar({
         >
           + New Conversation
         </button>
+      </div>
+
+      {/* Usage Stats */}
+      <div className="p-4 border-b border-gray-200">
+        <UsageStats userId={userId} />
       </div>
 
       {/* Conversation List */}

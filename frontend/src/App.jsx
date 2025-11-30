@@ -258,6 +258,7 @@ function App() {
         onSelectConversation={setCurrentConversationId}
         onNewConversation={handleNewConversation}
         onDeleteConversation={handleDeleteConversation}
+        userId={user.uid}
       />
 
       {/* Main Content */}

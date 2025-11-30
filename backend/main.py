@@ -53,6 +53,17 @@ async def root():
     }
 
 
+@app.get("/api/usage")
+async def get_usage(x_user_id: str = Header(...)):
+    """Get user's usage statistics."""
+    try:
+        stats = usage.get_usage_stats(x_user_id)
+        return stats
+    except Exception as e:
+        logger.error(f"Error getting usage stats: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get usage stats")
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
@@ -60,6 +71,7 @@ if __name__ == "__main__":
 
 
 import storage
+import usage
 
 
 @app.post("/api/conversations", response_model=ConversationResponse)
@@ -133,6 +145,12 @@ async def send_message_stream(conversation_id: str, request: MessageRequest, x_u
     
     async def event_generator():
         try:
+            # Check rate limits
+            allowed, error_msg = usage.check_rate_limit(x_user_id)
+            if not allowed:
+                yield f"data: {json.dumps({'type': 'error', 'message': error_msg})}\n\n"
+                return
+            
             # Validate conversation exists and belongs to user
             conversation = storage.get_conversation(conversation_id, user_id=x_user_id)
             if not conversation:
@@ -141,6 +159,9 @@ async def send_message_stream(conversation_id: str, request: MessageRequest, x_u
             
             # Add user message to conversation
             storage.add_user_message(conversation_id, request.content, user_id=x_user_id)
+            
+            # Increment usage count
+            usage.increment_usage(x_user_id)
             
             # Stage 1: Collect individual responses
             yield f"data: {json.dumps({'type': 'stage1_start'})}\n\n"
