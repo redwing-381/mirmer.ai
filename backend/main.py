@@ -49,7 +49,7 @@ else:
 async def startup_event():
     """Initialize database on application startup."""
     import os
-    from backend.database import init_db, check_connection
+    from database import init_db, check_connection
     
     DATABASE_URL = os.getenv('DATABASE_URL')
     IS_PRODUCTION = os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('VERCEL')
@@ -122,11 +122,11 @@ if __name__ == "__main__":
 
 
 
-from backend import storage
-from backend import usage
-from backend.payments import PaymentService, RAZORPAY_PLAN_IDS
+import storage
+import usage
+from payments import PaymentService, RAZORPAY_PLAN_IDS
 from fastapi import Request
-from backend.database import get_db
+from database import get_db
 import json
 
 
@@ -188,7 +188,7 @@ async def get_conversation(conversation_id: str, x_user_id: str = Header(...)):
 
 import json
 from fastapi.responses import StreamingResponse
-from backend import council
+import council
 
 
 @app.post("/api/conversations/{conversation_id}/message/stream")

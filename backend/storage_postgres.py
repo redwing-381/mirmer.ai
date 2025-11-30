@@ -6,8 +6,8 @@ import uuid
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 from sqlalchemy.orm import joinedload
-from backend.database import SessionLocal
-from backend.models import Conversation, Message
+from database import SessionLocal
+from models import Conversation, Message
 
 logger = logging.getLogger(__name__)
 

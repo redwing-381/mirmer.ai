@@ -3,8 +3,8 @@ Council orchestration for the 3-stage multi-LLM consultation process.
 """
 import logging
 from typing import Dict, List, Any, Optional
-from backend.openrouter import query_models_parallel
-from backend.config import COUNCIL_MODELS
+from openrouter import query_models_parallel
+from config import COUNCIL_MODELS
 
 logger = logging.getLogger(__name__)
 

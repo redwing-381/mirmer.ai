@@ -8,8 +8,8 @@ import hashlib
 from datetime import datetime
 from typing import Optional, Dict, Any
 from sqlalchemy.orm import Session
-from backend.models import Usage
-from backend.database import get_db
+from models import Usage
+from database import get_db
 
 # Initialize Razorpay
 RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')

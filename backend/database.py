@@ -62,7 +62,7 @@ def init_db():
     
     try:
         # Import models to register them with Base
-        from backend import models
+        import models
         
         # Create all tables
         Base.metadata.create_all(bind=engine)
