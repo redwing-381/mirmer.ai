@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { api } from '../api'
 
 /**
  * Usage Statistics Component
@@ -16,12 +17,7 @@ export default function UsageStats({ userId }) {
 
   const loadStats = async () => {
     try {
-      const response = await fetch('/api/usage', {
-        headers: {
-          'X-User-Id': userId,
-        },
-      })
-      const data = await response.json()
+      const data = await api.getUsageStats(userId)
       setStats(data)
     } catch (error) {
       console.error('Error loading usage stats:', error)

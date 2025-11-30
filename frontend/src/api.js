@@ -6,6 +6,10 @@ const API_BASE = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/api` 
   : '/api';
 
+// Debug: Log the API base URL
+console.log('API_BASE:', API_BASE);
+console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
+
 /**
  * Get headers with user ID
  */
@@ -147,10 +151,29 @@ export async function deleteConversation(conversationId, userId) {
   return response.json();
 }
 
+/**
+ * Get usage statistics for a user.
+ * 
+ * @param {string} userId - User ID
+ * @returns {Promise<Object>} Usage stats object
+ */
+export async function getUsageStats(userId) {
+  const response = await fetch(`${API_BASE}/usage`, {
+    headers: getHeaders(userId),
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+}
+
 export const api = {
   sendMessageStream,
   createConversation,
   listConversations,
   getConversation,
   deleteConversation,
+  getUsageStats,
 };
