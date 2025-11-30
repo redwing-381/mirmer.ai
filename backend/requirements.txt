@@ -50,3 +50,6 @@ uvicorn==0.38.0
 # Database dependencies
 sqlalchemy>=2.0.0
 psycopg2-binary>=2.9.0
+
+# Payment processing
+razorpay>=1.4.0

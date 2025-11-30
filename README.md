@@ -8,8 +8,12 @@ A multi-LLM consultation system that queries multiple AI models in parallel, has
 - **Stage 2**: Anonymous peer review where models rank each other's responses
 - **Stage 3**: Chairman synthesis of collective wisdom into a comprehensive answer
 - Real-time streaming updates via Server-Sent Events
-- Conversation history with JSON storage
+- **Persistent storage** with PostgreSQL (production) or JSON files (local development)
+- User authentication with Firebase Google Sign-In
+- **Razorpay payment integration** for Pro subscriptions (India-friendly)
+- Usage tracking and rate limiting
 - Clean React UI with tabbed interfaces for each stage
+- Landing page with pricing tiers
 
 ## Prerequisites
 
@@ -17,6 +21,9 @@ A multi-LLM consultation system that queries multiple AI models in parallel, has
 - Node.js 18+
 - uv (Python package manager)
 - OpenRouter API key
+- PostgreSQL database (for production) - optional for local development
+- Firebase project (for authentication)
+- Razorpay account (for payment processing) - optional
 
 ## Setup
 
@@ -89,20 +96,58 @@ Frontend will be available at: http://localhost:5173
 ```
 mirmer-ai/
 ├── backend/
-│   ├── config.py          # Configuration and model definitions
-│   ├── openrouter.py      # OpenRouter API client
-│   ├── council.py         # 3-stage council orchestration
-│   ├── storage.py         # JSON conversation storage
-│   └── main.py            # FastAPI application
+│   ├── config.py              # Configuration and model definitions
+│   ├── openrouter.py          # OpenRouter API client
+│   ├── council.py             # 3-stage council orchestration
+│   ├── database.py            # PostgreSQL connection and setup
+│   ├── models.py              # SQLAlchemy database models
+│   ├── storage.py             # Storage factory (auto-selects backend)
+│   ├── storage_postgres.py   # PostgreSQL storage implementation
+│   ├── storage_json.py        # JSON file storage implementation
+│   ├── usage_postgres.py     # PostgreSQL usage tracking
+│   ├── usage_json.py          # JSON usage tracking
+│   ├── migrate_to_postgres.py # Migration script for existing data
+│   └── main.py                # FastAPI application
 ├── frontend/
 │   ├── src/
-│   │   ├── api.js         # API client with SSE support
-│   │   ├── App.jsx        # Main application component
-│   │   └── components/    # React components
+│   │   ├── api.js             # API client with SSE support
+│   │   ├── firebase.js        # Firebase authentication
+│   │   ├── App.jsx            # Main application component
+│   │   └── components/        # React components
 │   └── package.json
-├── data/
-│   └── conversations/     # Stored conversations (JSON)
-└── .env                   # Environment variables (not in git)
+├── data/                      # Local JSON storage (development only)
+│   ├── {user_id}/             # User-specific conversations
+│   └── usage/                 # Usage statistics
+└── .env                       # Environment variables (not in git)
+```
+
+## Database
+
+### Local Development (No Database Required)
+
+By default, the application uses JSON file storage for local development. No database setup needed!
+
+### Production (PostgreSQL)
+
+For production deployment, set the `DATABASE_URL` environment variable:
+
+```bash
+export DATABASE_URL="postgresql://user:password@host:port/database"
+```
+
+The application will automatically:
+- Use PostgreSQL for all storage operations
+- Create required tables on startup
+- Handle connection pooling
+
+### Migrating Existing Data
+
+If you have existing JSON data to migrate to PostgreSQL:
+
+```bash
+cd backend
+python migrate_to_postgres.py --backup --dry-run  # Preview migration
+python migrate_to_postgres.py --backup             # Perform migration
 ```
 
 ## API Endpoints
@@ -111,6 +156,8 @@ mirmer-ai/
 - `GET /api/conversations` - List all conversations
 - `GET /api/conversations/{id}` - Get specific conversation
 - `POST /api/conversations/{id}/message/stream` - Send message and stream 3-stage process
+- `GET /api/usage` - Get user usage statistics
+- `DELETE /api/conversations/{id}` - Delete conversation
 
 ## Development
 
@@ -118,7 +165,12 @@ The application uses:
 - **Backend**: FastAPI with async/await for parallel model queries
 - **Frontend**: React 19 with Vite for fast development
 - **Communication**: Server-Sent Events for real-time streaming
-- **Storage**: JSON files for conversation persistence
+- **Storage**: Dual-mode storage system
+  - **Production**: PostgreSQL with SQLAlchemy ORM
+  - **Local Development**: JSON files (no database required)
+  - Automatic backend selection based on `DATABASE_URL` environment variable
+- **Authentication**: Firebase Google Sign-In
+- **Deployment**: Railway (backend + database) + Vercel (frontend)
 
 ## How It Works
 
@@ -160,3 +212,62 @@ The application uses:
 ## License
 
 See LICENSE file for details.
+
+
+## Payment Integration
+
+Mirmer AI includes Razorpay payment integration for Pro subscriptions (₹1,499/month).
+
+### Pricing Tiers
+
+- **Free**: 10 queries per day
+- **Pro**: 100 queries per day (₹1,499/month or $19/month)
+- **Enterprise**: Unlimited queries (custom pricing)
+
+### Setup Razorpay Payments
+
+For detailed setup instructions, see [RAZORPAY_SETUP.md](RAZORPAY_SETUP.md).
+
+Quick setup:
+
+1. Create a Razorpay account at https://razorpay.com
+2. Complete KYC verification
+3. Get your API keys from the Razorpay Dashboard
+4. Create a subscription plan in Razorpay
+5. Add environment variables to `.env`:
+   ```bash
+   RAZORPAY_KEY_ID=rzp_test_your_key_id
+   RAZORPAY_KEY_SECRET=your_key_secret
+   RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
+   RAZORPAY_PRO_MONTHLY_PLAN_ID=plan_your_plan_id
+   ```
+6. Run database migration:
+   ```bash
+   cd backend
+   python migrate_add_subscription_fields.py
+   ```
+7. Test locally with ngrok:
+   ```bash
+   ngrok http 8001
+   ```
+
+### Payment Features
+
+- Secure checkout with Razorpay
+- Supports UPI, Cards, NetBanking, Wallets
+- Automatic subscription management
+- Subscription cancellation
+- Webhook handling for subscription events
+- Usage limit updates based on subscription tier
+- Payment success notifications
+- Works in India and internationally
+
+### Test Cards
+
+Use these test cards in Razorpay Checkout (test mode):
+
+- Success: `4111 1111 1111 1111`
+- Decline: `4000 0000 0000 0002`
+- 3D Secure: `5104 0600 0000 0008` (OTP: 1234)
+
+Use any future expiry date, any 3-digit CVV, and any name.

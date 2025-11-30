@@ -100,6 +100,10 @@ if __name__ == "__main__":
 
 import storage
 import usage
+from payments import PaymentService, RAZORPAY_PLAN_IDS
+from fastapi import Request
+from database import get_db
+import json
 
 
 @app.post("/api/conversations", response_model=ConversationResponse)
@@ -300,3 +304,124 @@ async def delete_conversation(conversation_id: str, x_user_id: str = Header(...)
     except Exception as e:
         logger.error(f"Error deleting conversation {conversation_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to delete conversation")
+
+
+# Payment endpoints
+@app.post("/api/payments/create-subscription")
+async def create_subscription(x_user_id: str = Header(...), x_user_email: str = Header(...)):
+    """
+    Create a Razorpay subscription for Pro plan.
+    """
+    try:
+        # Get the frontend URL from environment or use default
+        import os
+        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+        
+        result = PaymentService.create_subscription(
+            user_id=x_user_id,
+            user_email=x_user_email,
+            plan_id=RAZORPAY_PLAN_IDS['pro_monthly'],
+            success_url=f"{frontend_url}/app?payment=success",
+            cancel_url=f"{frontend_url}/?payment=cancelled"
+        )
+        
+        if not result['success']:
+            raise HTTPException(status_code=400, detail=result.get('error', 'Failed to create subscription'))
+        
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating subscription: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create subscription")
+
+
+@app.post("/api/payments/cancel-subscription")
+async def cancel_subscription(x_user_id: str = Header(...)):
+    """
+    Cancel user's Razorpay subscription.
+    """
+    try:
+        db = next(get_db())
+        subscription_info = PaymentService.get_subscription_info(x_user_id, db)
+        
+        if not subscription_info or not subscription_info.get('subscription_id'):
+            raise HTTPException(status_code=404, detail="No active subscription found")
+        
+        result = PaymentService.cancel_subscription(subscription_info['subscription_id'])
+        
+        if not result['success']:
+            raise HTTPException(status_code=400, detail=result.get('error', 'Failed to cancel subscription'))
+        
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error cancelling subscription: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to cancel subscription")
+
+
+@app.get("/api/payments/subscription")
+async def get_subscription(x_user_id: str = Header(...)):
+    """
+    Get user's subscription information.
+    """
+    try:
+        # Check if database is configured
+        import os
+        if not os.getenv('DATABASE_URL'):
+            # No database - return free tier for now
+            return {"tier": "free", "status": None}
+        
+        db = next(get_db())
+        subscription_info = PaymentService.get_subscription_info(x_user_id, db)
+        
+        if not subscription_info:
+            return {"tier": "free", "status": None}
+        
+        return subscription_info
+    except Exception as e:
+        logger.error(f"Error getting subscription info: {str(e)}")
+        # Return free tier on error instead of failing
+        return {"tier": "free", "status": None}
+
+
+@app.post("/api/webhooks/razorpay")
+async def razorpay_webhook(request: Request):
+    """
+    Handle Razorpay webhook events.
+    """
+    try:
+        payload = await request.body()
+        sig_header = request.headers.get('x-razorpay-signature')
+        
+        # Verify webhook signature
+        if not PaymentService.verify_webhook_signature(payload, sig_header):
+            raise HTTPException(status_code=400, detail="Invalid signature")
+        
+        # Parse payload
+        event = json.loads(payload.decode('utf-8'))
+        event_type = event.get('event')
+        
+        db = next(get_db())
+        
+        # Handle different event types
+        if event_type == 'subscription.activated':
+            PaymentService.handle_payment_authorized(event, db)
+        elif event_type == 'subscription.charged':
+            PaymentService.handle_payment_authorized(event, db)
+        elif event_type == 'subscription.updated':
+            PaymentService.handle_subscription_updated(event, db)
+        elif event_type == 'subscription.cancelled':
+            PaymentService.handle_subscription_cancelled(event, db)
+        elif event_type == 'subscription.completed':
+            PaymentService.handle_subscription_cancelled(event, db)
+        elif event_type == 'subscription.halted':
+            PaymentService.handle_subscription_cancelled(event, db)
+        
+        return {"status": "success"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error handling webhook: {str(e)}")
+        raise HTTPException(status_code=500, detail="Webhook handler failed")

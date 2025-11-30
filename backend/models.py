@@ -96,6 +96,10 @@ class Usage(Base):
     # Subscription tier
     tier = Column(String(20), default='free', nullable=False)  # 'free', 'pro', 'enterprise'
     
+    # Razorpay subscription data
+    razorpay_subscription_id = Column(String(128), nullable=True, index=True)
+    subscription_status = Column(String(20), nullable=True)  # 'active', 'cancelled', 'completed', etc.
+    
     # Usage counters
     daily_used = Column(Integer, default=0, nullable=False)
     daily_limit = Column(Integer, default=10, nullable=False)

@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api'
+import UpgradeModal from './UpgradeModal'
 
 /**
  * Usage Statistics Component
  * Displays user's query usage and limits
  */
-export default function UsageStats({ userId }) {
+export default function UsageStats({ userId, user }) {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   useEffect(() => {
     if (userId) {
@@ -93,7 +95,10 @@ export default function UsageStats({ userId }) {
               <p className="text-sm text-blue-900 mb-2">
                 Running low on queries?
               </p>
-              <button className="text-sm font-medium text-blue-600 hover:text-blue-700">
+              <button 
+                onClick={() => setShowUpgradeModal(true)}
+                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              >
                 Upgrade to Pro →
               </button>
             </div>
@@ -103,10 +108,17 @@ export default function UsageStats({ userId }) {
 
       {stats.tier !== 'free' && (
         <div className="text-sm text-gray-600">
-          <p>✨ Unlimited queries</p>
+          <p>✨ Pro Plan Active</p>
           <p className="text-xs mt-1">Total: {stats.total_queries} queries</p>
         </div>
       )}
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        userEmail={user?.email}
+        userId={user?.uid}
+      />
     </div>
   )
 }

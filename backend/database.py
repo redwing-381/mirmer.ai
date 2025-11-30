@@ -28,7 +28,9 @@ if DATABASE_URL:
             max_overflow=10,          # Additional connections during peak load
             pool_pre_ping=True,       # Verify connections before using
             pool_recycle=3600,        # Recycle connections after 1 hour
-            echo=False                # Set to True for SQL query logging
+            echo=False,               # Set to True for SQL query logging
+            echo_pool=False,          # Set to True for connection pool logging
+            pool_timeout=30           # Timeout for getting connection from pool
         )
         
         # Create session factory

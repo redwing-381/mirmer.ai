@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom'
+import { Settings } from 'lucide-react'
 import UsageStats from './UsageStats'
 
 /**
@@ -12,8 +14,10 @@ export default function Sidebar({
   onSelectConversation, 
   onNewConversation,
   onDeleteConversation,
-  userId 
+  userId,
+  user
 }) {
+  const navigate = useNavigate()
   const formatDate = (isoString) => {
     if (!isoString) return ''
     const date = new Date(isoString)
@@ -40,7 +44,7 @@ export default function Sidebar({
 
       {/* Usage Stats */}
       <div className="p-4 border-b border-gray-200">
-        <UsageStats userId={userId} />
+        <UsageStats userId={userId} user={user} />
       </div>
 
       {/* Conversation List */}
@@ -93,6 +97,17 @@ export default function Sidebar({
             })}
           </div>
         )}
+      </div>
+
+      {/* Settings Button */}
+      <div className="p-4 border-t border-gray-200">
+        <button
+          onClick={() => navigate('/settings')}
+          className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium flex items-center justify-center"
+        >
+          <Settings className="w-4 h-4 mr-2" />
+          Settings
+        </button>
       </div>
     </div>
   )

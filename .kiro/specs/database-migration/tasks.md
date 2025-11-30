@@ -72,7 +72,7 @@
   - Update deployment documentation with database setup instructions
   - _Requirements: 2.1_
 
-- [ ] 9. Test PostgreSQL storage backend
+- [x] 9. Test PostgreSQL storage backend
   - Deploy to Railway with PostgreSQL enabled
   - Test creating conversations and messages
   - Test listing conversations for a user
@@ -81,7 +81,7 @@
   - Verify data persists after Railway service restart
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 4.1, 4.4_
 
-- [ ] 10. Create migration script for existing data
+- [x] 10. Create migration script for existing data
   - Create backend/migrate_to_postgres.py script
   - Implement function to scan data/ directory for JSON files
   - Implement function to read and parse conversation JSON files
@@ -91,14 +91,14 @@
   - Add --backup flag to backup JSON files before migration
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 11. Update documentation
+- [x] 11. Update documentation
   - Update README.md with database setup instructions
   - Document environment variables (DATABASE_URL)
   - Add troubleshooting section for database connection issues
   - Document migration script usage
   - _Requirements: 2.4, 3.5_
 
-- [ ] 12. Add database monitoring and logging
+- [x] 12. Add database monitoring and logging
   - Add slow query logging (queries > 1 second)
   - Log connection pool metrics
   - Add error logging with context (user_id, conversation_id)
