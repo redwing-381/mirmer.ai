@@ -1,19 +1,13 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Button } from '../ui/Button'
-import { signInWithGoogle } from '../../firebase'
+import AuthModal from '../AuthModal'
 
 export default function HeroSection() {
-  const navigate = useNavigate()
   const [activeStage, setActiveStage] = useState(null)
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
-  const handleGetStarted = async () => {
-    try {
-      await signInWithGoogle()
-      navigate('/app')
-    } catch (error) {
-      console.error('Sign in error:', error)
-    }
+  const handleGetStarted = () => {
+    setShowAuthModal(true)
   }
 
   const stages = [
@@ -131,6 +125,8 @@ export default function HeroSection() {
           </div>
         </div>
       </div>
+
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
 
       <style jsx>{`
         @keyframes float {

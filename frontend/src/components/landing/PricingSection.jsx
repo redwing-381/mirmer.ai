@@ -1,37 +1,24 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../ui/Card'
 import { Button } from '../ui/Button'
 import { Badge } from '../ui/Badge'
-import { signInWithGoogle } from '../../firebase'
+import AuthModal from '../AuthModal'
 import UpgradeModal from '../UpgradeModal'
 
 export default function PricingSection() {
-  const navigate = useNavigate()
+  const [showAuthModal, setShowAuthModal] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [userEmail, setUserEmail] = useState(null)
   const [userId, setUserId] = useState(null)
   const [hoveredCard, setHoveredCard] = useState(null)
 
-  const handleGetStarted = async (tier) => {
-    try {
-      const userCredential = await signInWithGoogle()
-      const user = userCredential.user
-      
-      if (tier === 'pro') {
-        // Show upgrade modal for Pro tier
-        setUserEmail(user.email)
-        setUserId(user.uid)
-        setShowUpgradeModal(true)
-      } else if (tier === 'enterprise') {
-        // Redirect to contact page or open email
-        window.location.href = 'mailto:sales@mirmer.ai?subject=Enterprise Plan Inquiry'
-      } else {
-        // Free tier - go directly to app
-        navigate('/app')
-      }
-    } catch (error) {
-      console.error('Sign in error:', error)
+  const handleGetStarted = (tier) => {
+    if (tier === 'enterprise') {
+      // Redirect to contact page or open email
+      window.location.href = 'mailto:sales@mirmer.ai?subject=Enterprise Plan Inquiry'
+    } else {
+      // Show auth modal for Free and Pro tiers
+      setShowAuthModal(true)
     }
   }
 
@@ -172,6 +159,8 @@ export default function PricingSection() {
         </div>
       </div>
 
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      
       <UpgradeModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}

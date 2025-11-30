@@ -5,7 +5,10 @@ import { onAuthStateChanged } from 'firebase/auth'
 import Navigation from '../components/landing/Navigation'
 import HeroSection from '../components/landing/HeroSection'
 import FeaturesSection from '../components/landing/FeaturesSection'
+import UseCasesSection from '../components/landing/UseCasesSection'
+import ComparisonSection from '../components/landing/ComparisonSection'
 import PricingSection from '../components/landing/PricingSection'
+import FAQSection from '../components/landing/FAQSection'
 import Footer from '../components/landing/Footer'
 
 function LandingPage() {
@@ -41,7 +44,10 @@ function LandingPage() {
       <main className="pt-16">
         <HeroSection />
         <FeaturesSection />
+        <UseCasesSection />
+        <ComparisonSection />
         <PricingSection />
+        <FAQSection />
       </main>
       
       <Footer />

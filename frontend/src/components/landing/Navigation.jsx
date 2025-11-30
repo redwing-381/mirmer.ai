@@ -1,19 +1,15 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../ui/Button'
-import { signInWithGoogle } from '../../firebase'
+import AuthModal from '../AuthModal'
 
 export default function Navigation({ user }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
   const navigate = useNavigate()
 
-  const handleSignIn = async () => {
-    try {
-      await signInWithGoogle()
-      navigate('/app')
-    } catch (error) {
-      console.error('Sign in error:', error)
-    }
+  const handleSignIn = () => {
+    setShowAuthModal(true)
   }
 
   const scrollToSection = (id) => {
@@ -134,6 +130,8 @@ export default function Navigation({ user }) {
           </div>
         </div>
       )}
+
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </nav>
   )
 }
