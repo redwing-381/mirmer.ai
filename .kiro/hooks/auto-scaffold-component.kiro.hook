@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "name": "Auto-Scaffold Component",
+  "description": "Automatically generates boilerplate code with imports, starter functions/classes, placeholder comments, and matching test files when a new file is created",
+  "version": "1",
+  "when": {
+    "type": "fileCreated",
+    "patterns": [
+      "**/*.jsx",
+      "**/*.js",
+      "**/*.py",
+      "**/*.ts",
+      "**/*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A new file has been created. Please analyze the file path and name to determine the appropriate boilerplate to generate:\n\n1. Detect the file type (React component, Node.js module, Python module, TypeScript, etc.)\n2. Generate appropriate boilerplate including:\n   - Default imports based on the project structure and file type\n   - A starter function or class with proper naming conventions\n   - Placeholder comments describing usage and parameters\n   - Proper export statements\n3. If this is a component file (jsx/tsx), also create a matching test file in the appropriate __tests__ directory with basic test scaffolding\n4. Follow the existing code style and patterns from the project\n\nWrite the boilerplate code directly to the newly created file and create any associated test files."
+  }
+}

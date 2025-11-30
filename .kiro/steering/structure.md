@@ -1,0 +1,125 @@
+---
+inclusion: always
+---
+
+# Project Structure
+
+## Root Layout
+
+```
+mirmer-ai/
+├── backend/           # FastAPI backend application
+├── frontend/          # React frontend application
+├── data/              # Local JSON storage (development only)
+├── .env               # Environment variables (not in git)
+├── .env.example       # Environment template
+└── start.sh           # Quick start script for both services
+```
+
+## Backend Structure
+
+```
+backend/
+├── main.py                    # FastAPI app entry point, API routes
+├── config.py                  # Configuration and model definitions
+├── council.py                 # 3-stage council orchestration logic
+├── openrouter.py              # OpenRouter API client
+├── database.py                # PostgreSQL connection and setup
+├── models.py                  # SQLAlchemy database models
+├── storage.py                 # Storage factory (auto-selects backend)
+├── storage_postgres.py        # PostgreSQL storage implementation
+├── storage_json.py            # JSON file storage implementation
+├── usage.py                   # Usage tracking factory
+├── usage_postgres.py          # PostgreSQL usage tracking
+├── usage_json.py              # JSON usage tracking
+├── payments.py                # Razorpay payment integration
+├── migrate_to_postgres.py     # Data migration script
+├── migrate_add_subscription_fields.py  # Schema migration
+├── admin_upgrade_user.py      # Admin utility for user upgrades
+├── requirements.txt           # Python dependencies
+├── pyproject.toml             # uv project configuration
+└── data/                      # Local JSON storage directory
+```
+
+## Frontend Structure
+
+```
+frontend/
+├── src/
+│   ├── main.jsx               # React app entry point
+│   ├── App.jsx                # Main app component with routing
+│   ├── api.js                 # API client with SSE support
+│   ├── firebase.js            # Firebase authentication setup
+│   ├── components/
+│   │   ├── ChatInterface.jsx  # Main chat UI with 3-stage tabs
+│   │   ├── Sidebar.jsx        # Conversation list sidebar
+│   │   ├── Stage1.jsx         # Stage 1 individual responses display
+│   │   ├── Stage2.jsx         # Stage 2 peer rankings display
+│   │   ├── Stage3.jsx         # Stage 3 chairman synthesis display
+│   │   ├── Auth.jsx           # Authentication component
+│   │   ├── AuthModal.jsx      # Sign-in modal
+│   │   ├── UsageStats.jsx     # Usage tracking display
+│   │   ├── UpgradeModal.jsx   # Pro subscription upgrade modal
+│   │   ├── SubscriptionManager.jsx  # Subscription management
+│   │   ├── landing/           # Landing page components
+│   │   │   ├── HeroSection.jsx
+│   │   │   ├── FeaturesSection.jsx
+│   │   │   ├── PricingSection.jsx
+│   │   │   ├── ComparisonSection.jsx
+│   │   │   ├── UseCasesSection.jsx
+│   │   │   ├── FAQSection.jsx
+│   │   │   ├── Navigation.jsx
+│   │   │   └── Footer.jsx
+│   │   └── ui/                # Reusable UI components
+│   │       ├── Button.jsx
+│   │       ├── Card.jsx
+│   │       ├── Input.jsx
+│   │       ├── Badge.jsx
+│   │       ├── Toast.jsx
+│   │       └── AlertDialog.jsx
+│   ├── pages/
+│   │   ├── LandingPage.jsx    # Public landing page
+│   │   ├── AppPage.jsx        # Main application page (authenticated)
+│   │   └── SettingsPage.jsx   # User settings and subscription
+│   └── lib/
+│       └── utils.js           # Utility functions (cn for classnames)
+├── index.html                 # HTML entry point
+├── package.json               # npm dependencies and scripts
+├── vite.config.js             # Vite configuration
+├── tailwind.config.js         # Tailwind CSS configuration
+└── postcss.config.js          # PostCSS configuration
+```
+
+## Architecture Patterns
+
+### Dual-Mode Storage
+The backend uses a factory pattern to automatically select storage backend:
+- **Production** (DATABASE_URL set): PostgreSQL via `storage_postgres.py`
+- **Development** (no DATABASE_URL): JSON files via `storage_json.py`
+- Import from `storage.py` to get the correct implementation automatically
+
+### API Communication
+- REST endpoints for CRUD operations
+- Server-Sent Events (SSE) for streaming 3-stage council process
+- Firebase ID tokens in `x-user-id` header for authentication
+
+### Component Organization
+- **Pages**: Top-level route components
+- **Components**: Feature components (Chat, Sidebar, Auth, etc.)
+- **Components/ui**: Reusable UI primitives
+- **Components/landing**: Landing page sections
+
+### State Management
+- Firebase auth state managed in `App.jsx`
+- Conversation state managed in `AppPage.jsx`
+- Local component state with React hooks
+- No global state management library (Redux, Zustand, etc.)
+
+## Data Flow
+
+1. User sends message via `ChatInterface.jsx`
+2. Frontend calls `/api/conversations/{id}/message/stream` via `api.js`
+3. Backend orchestrates 3-stage council process in `council.py`
+4. Real-time updates streamed back via SSE
+5. Frontend updates UI progressively as each stage completes
+6. Final conversation saved to storage backend (PostgreSQL or JSON)

@@ -1,6 +1,78 @@
 # Mirmer AI - Multi-LLM Consultation System
 
+[![Kiroween Hackathon 2024](https://img.shields.io/badge/Kiroween-Hackathon%202024-orange?style=for-the-badge&logo=halloween)](https://kiro.ai)
+[![Built with Kiro AI](https://img.shields.io/badge/Built%20with-Kiro%20AI-blue?style=for-the-badge)](https://kiro.ai)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+
+> 🎃 **Kiroween Hackathon 2024 Project** - Multi-Agent AI System with Peer Review
+
 A multi-LLM consultation system that queries multiple AI models in parallel, has them peer-review each other's responses, and synthesizes a final answer through a 3-stage council process.
+
+Built with [Kiro AI](https://kiro.ai) to demonstrate AI-assisted full-stack development.
+
+## 🎃 Kiroween Hackathon 2025
+
+**Project Theme**: Multi-Agent AI Systems with Peer Review
+
+**Live Demo**: [mirmer.ai](https://mirmer.ai) *(if deployed)*
+
+This project demonstrates:
+- **Innovative Architecture**: 3-stage council process where AI models debate and synthesize answers
+- **AI-Assisted Development**: Entire codebase developed with Kiro AI assistance
+- **Production Quality**: Complete with authentication, payments, database, and deployment
+- **Real-time Streaming**: Server-Sent Events for live updates during the 3-stage process
+- **Modern Stack**: FastAPI + React + PostgreSQL + Tailwind CSS
+
+**What makes it special:**
+- AI models anonymously peer-review each other's responses (Stage 2)
+- Aggregate rankings determine the best answers
+- Chairman model synthesizes collective wisdom into final answer
+- Dual-mode storage (PostgreSQL for production, JSON for local dev)
+- Full payment integration with Razorpay for subscription management
+
+### How It Works
+
+```
+User Question
+     ↓
+┌────────────────────────────────────────────────┐
+│  STAGE 1: Individual Responses (Parallel)      │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌──────┐ │
+│  │ GPT-3.5 │ │ Claude  │ │ Mistral │ │ Llama│ │
+│  └────┬────┘ └────┬────┘ └────┬────┘ └───┬──┘ │
+└───────┼───────────┼───────────┼───────────┼────┘
+        └───────────┴───────────┴───────────┘
+                      ↓
+┌────────────────────────────────────────────────┐
+│  STAGE 2: Anonymous Peer Review                │
+│  Each model ranks others' responses            │
+│  "Response A > Response C > Response B > ..."  │
+│  Aggregate rankings calculated                 │
+└────────────────────┬───────────────────────────┘
+                     ↓
+┌────────────────────────────────────────────────┐
+│  STAGE 3: Chairman Synthesis                   │
+│  Reviews all responses + rankings              │
+│  Synthesizes collective wisdom                 │
+│  Produces final comprehensive answer           │
+└────────────────────┬───────────────────────────┘
+                     ↓
+              Final Answer
+```
+
+## Why This Matters
+
+Traditional AI chatbots give you one model's perspective. Mirmer AI gives you:
+- **Diverse Perspectives**: 4 different AI models from different providers
+- **Quality Validation**: Models peer-review each other, surfacing the best answers
+- **Collective Intelligence**: Chairman synthesizes insights from all models
+- **Transparency**: See each stage of the process in real-time
+
+Perfect for:
+- Complex questions requiring multiple viewpoints
+- Research and analysis tasks
+- Decision-making with AI assistance
+- Understanding how different AI models approach problems
 
 ## Features
 
@@ -209,9 +281,50 @@ The application uses:
 - **404 Model Not Found**: Update model IDs in `backend/config.py` to valid OpenRouter models
 - **All models failed**: Check your API key and internet connection
 
+## 🏆 Hackathon Achievements
+
+### Technical Highlights
+
+**Multi-Agent Orchestration**
+- Parallel query execution across 4 different LLM models
+- Anonymous peer review system with ranking aggregation
+- Chairman synthesis combining collective intelligence
+
+**Full-Stack Implementation**
+- Backend: FastAPI with async/await for parallel processing
+- Frontend: React 18 with real-time SSE streaming
+- Database: Dual-mode storage (PostgreSQL/JSON) with automatic selection
+- Authentication: Firebase Google Sign-In
+- Payments: Razorpay integration with webhook handling
+
+**Production Features**
+- User authentication and session management
+- Usage tracking with daily/monthly limits
+- Subscription tiers (Free, Pro, Enterprise)
+- Conversation persistence and history
+- Rate limiting and quota management
+- Responsive UI with Tailwind CSS
+
+### Development with Kiro AI
+
+This project showcases Kiro AI's capabilities in:
+- **Architecture Design**: Designing the 3-stage council process and dual-mode storage
+- **Code Generation**: Writing FastAPI endpoints, React components, and database models
+- **Integration**: Setting up Firebase auth, Razorpay payments, and PostgreSQL
+- **Testing**: Creating property-based tests with pytest and hypothesis
+- **Documentation**: Generating comprehensive README and API documentation
+- **Debugging**: Fixing import issues, database migrations, and deployment problems
+- **Deployment**: Configuring Railway and Vercel for production deployment
+
+**Lines of Code**: ~5,000+ lines across backend and frontend
+**Development Time**: Accelerated with Kiro AI assistance
+**Tech Stack Complexity**: 10+ major technologies integrated seamlessly
+
 ## License
 
-See LICENSE file for details.
+MIT License - See LICENSE file for details.
+
+Copyright (c) 2025 Solaimuthu A
 
 
 ## Payment Integration

@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "API Function Generator",
+  "description": "When a new API function is defined, automatically create the route handler, request validation schema, example request body, controller boilerplate, and error-handling structure to speed up backend development with consistent patterns.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "backend/main.py",
+      "backend/*.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A new API function has been defined. Please analyze the function definition and automatically generate:\n\n1. **Route Handler**: Create the FastAPI route decorator and endpoint function\n2. **Request Validation Schema**: Generate Pydantic models for request validation\n3. **Example Request Body**: Provide a sample JSON request body for testing\n4. **Controller Boilerplate**: Create the controller function with proper structure\n5. **Error Handling**: Add try-catch blocks with appropriate HTTP error responses\n\nEnsure all generated code follows the existing patterns in the codebase (FastAPI, Pydantic validation, consistent error handling). Place the code in the appropriate files and maintain consistency with the project structure."
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "name": "Auto-Document Functions & Classes",
+  "description": "Automatically generates inline documentation, parameter descriptions, return value explanations, and example usage whenever a function or class is written or edited in the codebase",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.py",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.ts",
+      "**/*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Analyze the recently edited code file and identify any functions or classes that are missing or have incomplete documentation. For each function or class found:\n\n1. Add comprehensive inline documentation (docstrings for Python, JSDoc for JavaScript/TypeScript)\n2. Document all parameters with their types and descriptions\n3. Document return values with types and explanations\n4. Add example usage demonstrating how to use the function/class\n5. Ensure the documentation follows the language's standard conventions (PEP 257 for Python, JSDoc standards for JS/TS)\n\nOnly modify the documentation - do not change the actual code logic. If documentation already exists and is complete, acknowledge it and make no changes. Focus on keeping documentation up-to-date with the current implementation."
+  }
+}

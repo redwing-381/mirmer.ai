@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "name": "Auto-Generate Unit Tests",
+  "description": "Automatically generates or updates test files when functions are created or modified. Creates comprehensive unit tests including expected input/output cases, edge cases, error-handling tests, and mock objects where needed.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.py",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.ts",
+      "**/*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A function has been created or updated in this file. Please analyze the code and:\n\n1. Identify all functions that have been added or modified\n2. For each function, generate or update corresponding unit tests that include:\n   - Expected input/output test cases covering normal operation\n   - Edge cases (empty inputs, null values, boundary conditions, etc.)\n   - Error-handling tests (invalid inputs, exceptions, error states)\n   - Mock objects for external dependencies (APIs, databases, file systems, etc.)\n3. Create a new test file if one doesn't exist, or update the existing test file\n4. Follow the project's testing conventions and framework (pytest for Python, Jest/Vitest for JavaScript)\n5. Ensure tests are well-documented with clear descriptions\n6. Make sure all test assertions are meaningful and comprehensive\n\nPlace test files in the appropriate location based on the project structure (e.g., __tests__ folders for JS/JSX, test_*.py files for Python)."
+  }
+}

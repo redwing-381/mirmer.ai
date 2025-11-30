@@ -1,0 +1,27 @@
+{
+  "enabled": true,
+  "name": "Code Quality Analyzer",
+  "description": "Automatically analyzes saved files to suggest refactors for long functions, identify duplicate logic, highlight unused code, suggest better variable names, and fix formatting/linting issues",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.py",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.java",
+      "**/*.cpp",
+      "**/*.c",
+      "**/*.go",
+      "**/*.rs",
+      "**/*.rb",
+      "**/*.php"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Analyze the saved file for code quality improvements:\n\n1. **Long Functions**: Identify any functions longer than 50 lines or with high complexity. Suggest how to refactor them into smaller, more focused functions.\n\n2. **Duplicate Logic**: Look for repeated code patterns or logic that could be extracted into reusable functions or utilities.\n\n3. **Unused Code**: Highlight any unused variables, imports, functions, or parameters that can be safely removed.\n\n4. **Variable Naming**: Suggest improvements for unclear, abbreviated, or non-descriptive variable/function names. Recommend names that better convey intent.\n\n5. **Formatting & Linting**: Identify formatting inconsistencies, missing semicolons, improper indentation, or other linting issues based on common style guides for this language.\n\nProvide actionable, specific suggestions with code examples where helpful. Prioritize the most impactful improvements first."
+  }
+}
