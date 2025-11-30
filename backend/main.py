@@ -32,6 +32,34 @@ app.add_middleware(
 )
 
 
+# Startup event - initialize database if using PostgreSQL
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database on application startup."""
+    import os
+    from database import init_db, check_connection
+    
+    DATABASE_URL = os.getenv('DATABASE_URL')
+    
+    if DATABASE_URL:
+        logger.info("🔧 Initializing PostgreSQL database...")
+        
+        # Check connection
+        if check_connection():
+            logger.info("✓ Database connection successful")
+            
+            # Initialize tables
+            if init_db():
+                logger.info("✓ Database tables initialized")
+            else:
+                logger.error("✗ Failed to initialize database tables")
+        else:
+            logger.error("✗ Database connection failed")
+            logger.warning("⚠️  Application will continue but database operations may fail")
+    else:
+        logger.info("ℹ️  No DATABASE_URL found - using JSON file storage")
+
+
 # Pydantic models for requests/responses
 class MessageRequest(BaseModel):
     content: str

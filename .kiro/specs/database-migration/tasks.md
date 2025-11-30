@@ -59,14 +59,14 @@
   - Create new backend/usage.py with same detection logic
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 7. Initialize database on application startup
+- [x] 7. Initialize database on application startup
   - Update backend/main.py to call init_db() on startup when using PostgreSQL
   - Add startup event handler to create tables if they don't exist
   - Log database initialization status
   - Handle database connection errors gracefully
   - _Requirements: 3.1, 3.2, 3.4_
 
-- [ ] 8. Add Railway PostgreSQL database
+- [x] 8. Add Railway PostgreSQL database
   - Document steps to add PostgreSQL in Railway dashboard
   - Verify DATABASE_URL environment variable is automatically set
   - Update deployment documentation with database setup instructions
