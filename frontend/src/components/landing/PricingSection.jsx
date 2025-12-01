@@ -5,6 +5,7 @@ import { Button } from '../ui/Button'
 import { Badge } from '../ui/Badge'
 import AuthModal from '../AuthModal'
 import UpgradeModal from '../UpgradeModal'
+import EnterpriseContactModal from '../EnterpriseContactModal'
 import { auth } from '../../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 
@@ -12,6 +13,7 @@ export default function PricingSection() {
   const navigate = useNavigate()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [showEnterpriseModal, setShowEnterpriseModal] = useState(false)
   const [user, setUser] = useState(null)
   const [hoveredCard, setHoveredCard] = useState(null)
 
@@ -24,8 +26,8 @@ export default function PricingSection() {
 
   const handleGetStarted = (tier) => {
     if (tier === 'enterprise') {
-      // Redirect to contact page or open email
-      window.location.href = 'mailto:sales@mirmer.ai?subject=Enterprise Plan Inquiry'
+      // Open enterprise contact modal
+      setShowEnterpriseModal(true)
     } else if (tier === 'pro') {
       // For Pro tier
       if (user) {
@@ -189,6 +191,11 @@ export default function PricingSection() {
       <UpgradeModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
+      />
+
+      <EnterpriseContactModal
+        isOpen={showEnterpriseModal}
+        onClose={() => setShowEnterpriseModal(false)}
       />
     </section>
   )

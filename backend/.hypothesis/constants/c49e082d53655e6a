@@ -1,0 +1,4 @@
+# file: /Users/solaimuthua/Documents/GitHub/mirmer.ai/backend/config.py
+# hypothesis_version: 6.148.5
+
+['ADMIN_EMAIL', 'Mirmer AI', 'OPENROUTER_API_KEY', 'SENDGRID_API_KEY', 'SENDGRID_FROM_EMAIL', 'SENDGRID_FROM_NAME', 'admin@mirmer.ai', 'data/conversations', 'noreply@mirmer.ai', 'openai/gpt-3.5-turbo']

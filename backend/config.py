@@ -1,8 +1,14 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv()
+# Look for .env in the parent directory (project root) first, then current directory
+env_path = Path(__file__).parent.parent / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
+else:
+    load_dotenv()  # Fall back to current directory
 
 # OpenRouter API Configuration
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -25,3 +31,9 @@ CHAIRMAN_MODEL = "anthropic/claude-3-haiku"
 DATA_DIR = "data/conversations"
 
 # User data directory structure: data/conversations/{user_id}/{conversation_id}.json
+
+# Email Service Configuration
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+SENDGRID_FROM_EMAIL = os.getenv("SENDGRID_FROM_EMAIL", "noreply@mirmer.ai")
+SENDGRID_FROM_NAME = os.getenv("SENDGRID_FROM_NAME", "Mirmer AI")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@mirmer.ai")

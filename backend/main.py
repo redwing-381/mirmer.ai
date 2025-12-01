@@ -498,6 +498,57 @@ async def razorpay_webhook(request: Request):
         raise HTTPException(status_code=500, detail="Webhook handler failed")
 
 
+# Enterprise contact endpoint
+class EnterpriseInquiry(BaseModel):
+    name: str
+    email: str
+    company: str
+    companySize: str
+    phone: Optional[str] = None
+    message: str
+    useCase: Optional[str] = None
+
+
+@app.post("/api/enterprise/contact")
+async def submit_enterprise_inquiry(inquiry: EnterpriseInquiry):
+    """
+    Handle enterprise contact form submissions.
+    Sends confirmation email to submitter and notification to admin.
+    """
+    try:
+        from email_service import email_service
+        
+        logger.info(f"Received enterprise inquiry from {inquiry.email} at {inquiry.company}")
+        
+        # Send confirmation email to submitter
+        confirmation_sent = email_service.send_enterprise_inquiry_confirmation(
+            email=inquiry.email,
+            name=inquiry.name
+        )
+        
+        # Send notification to admin
+        admin_notified = email_service.send_enterprise_inquiry_notification(
+            name=inquiry.name,
+            email=inquiry.email,
+            company=inquiry.company,
+            company_size=inquiry.companySize,
+            phone=inquiry.phone,
+            message=inquiry.message,
+            use_case=inquiry.useCase
+        )
+        
+        logger.info(f"Enterprise inquiry processed - Confirmation: {confirmation_sent}, Admin notified: {admin_notified}")
+        
+        return {
+            "status": "success",
+            "message": "Thank you for your inquiry. We'll be in touch soon!"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error processing enterprise inquiry: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to process inquiry")
+
+
 # Catch-all route to serve frontend for SPA routing (must be last)
 @app.get("/{full_path:path}")
 async def serve_frontend(full_path: str):
