@@ -21,6 +21,10 @@ Mirmer AI is a multi-LLM consultation system that queries multiple AI models in 
 - Persistent conversation storage with dual-mode backend (PostgreSQL for production, JSON for local dev)
 - Clean React UI with tabbed interfaces for each stage
 - Landing page with pricing tiers
+- **Conversation search** - Search through conversation titles and message content with real-time filtering
+- **Collapsible sidebar** - Toggle sidebar visibility for more screen space
+- **Delete conversations** - Remove unwanted conversations with confirmation dialog
+- **Enterprise contact form** - Automated email notifications for enterprise inquiries
 
 ## Business Model
 

@@ -87,48 +87,48 @@
   - Update conversation list to show search results
   - _Requirements: 2.1, 2.2_
 
-- [ ] 4.6 Write property test for search highlighting
+- [x] 4.6 Write property test for search highlighting
   - **Property 7: Matching text is highlighted**
   - **Validates: Requirements 2.2**
 
-- [ ] 5. Checkpoint - Ensure all tests pass
+- [x] 5. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Phase 2: Export and Sharing
 
 - [ ] 6. Implement conversation export backend
-- [ ] 6.1 Create export service module
+- [x] 6.1 Create export service module
   - Implement Markdown export generator
   - Implement JSON export generator
   - Add export utility functions
   - _Requirements: 3.2, 3.4_
 
-- [ ] 6.2 Install and configure PDF generation library
+- [x] 6.2 Install and configure PDF generation library
   - Add WeasyPrint or Puppeteer to dependencies
   - Create PDF template with styling
   - _Requirements: 3.3_
 
-- [ ] 6.3 Implement PDF export generator
+- [x] 6.3 Implement PDF export generator
   - Convert conversation to HTML
   - Generate styled PDF from HTML
   - _Requirements: 3.3_
 
-- [ ] 6.4 Create export API endpoints
+- [x] 6.4 Create export API endpoints
   - Implement GET /api/conversations/{id}/export/markdown
   - Implement GET /api/conversations/{id}/export/pdf
   - Implement GET /api/conversations/{id}/export/json
   - Add proper content-type headers and file downloads
   - _Requirements: 3.2, 3.3, 3.4_
 
-- [ ] 6.5 Write property test for Markdown export
+- [x] 6.5 Write property test for Markdown export
   - **Property 11: Markdown export contains all content**
   - **Validates: Requirements 3.2**
 
-- [ ] 6.6 Write property test for JSON export round-trip
+- [x] 6.6 Write property test for JSON export round-trip
   - **Property 13: JSON export round-trip**
   - **Validates: Requirements 3.4**
 
-- [ ] 6.7 Write property test for PDF export validity
+- [x] 6.7 Write property test for PDF export validity
   - **Property 12: PDF export produces valid documents**
   - **Validates: Requirements 3.3**
 
@@ -164,7 +164,7 @@
   - **Validates: Requirements 3.6**
 
 - [ ] 8. Implement export and sharing frontend
-- [ ] 8.1 Create ExportMenu component
+- [x] 8.1 Create ExportMenu component
   - Build dropdown menu with format options
   - Implement download handlers for each format
   - Add loading states during export generation
@@ -183,7 +183,7 @@
   - Add "Create your own" CTA
   - _Requirements: 3.6_
 
-- [ ] 8.4 Integrate export and share into ChatInterface
+- [x] 8.4 Integrate export and share into ChatInterface
   - Add export button to conversation header
   - Add share button to conversation header
   - _Requirements: 3.1, 3.5_

@@ -47,9 +47,29 @@ else:
 # Startup event - initialize database if using PostgreSQL
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database on application startup."""
+    """Initialize database and validate configuration on application startup."""
     import os
     from database import init_db, check_connection
+    from config import validate_production_config
+    
+    # Validate configuration
+    logger.info("=" * 60)
+    logger.info("🚀 Mirmer AI Backend Starting...")
+    logger.info("=" * 60)
+    
+    config_result = validate_production_config()
+    
+    if not config_result['valid']:
+        logger.error("=" * 60)
+        logger.error("❌ CONFIGURATION VALIDATION FAILED")
+        logger.error("=" * 60)
+        for error in config_result['errors']:
+            logger.error(f"  ❌ {error}")
+        logger.error("=" * 60)
+        raise RuntimeError("Configuration validation failed. Please check environment variables.")
+    
+    if config_result['warnings']:
+        logger.warning("⚠️  Configuration has warnings but will continue...")
     
     DATABASE_URL = os.getenv('DATABASE_URL')
     IS_PRODUCTION = os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('VERCEL')
@@ -61,6 +81,7 @@ async def startup_event():
             raise RuntimeError("DATABASE_URL environment variable is required in production")
         else:
             logger.info("ℹ️  No DATABASE_URL found - using JSON file storage (development mode)")
+            logger.info("=" * 60)
             return
     
     logger.info("🔧 Initializing PostgreSQL database...")
@@ -168,8 +189,10 @@ import storage
 import usage
 from payments import PaymentService, RAZORPAY_PLAN_IDS
 from fastapi import Request
+from fastapi.responses import Response
 from database import get_db
 import json
+from export_service import ExportService, generate_export_filename
 
 
 @app.post("/api/conversations", response_model=ConversationResponse)
@@ -347,6 +370,15 @@ async def send_message_stream(conversation_id: str, request: MessageRequest, x_u
                 "aggregate_rankings": aggregate_rankings
             }
             
+            # DIAGNOSTIC: Log stage data before saving
+            logger.info(f"💾 Saving assistant message for conversation {conversation_id}")
+            logger.info(f"  Stage 1: {len(stage1_results)} responses")
+            logger.info(f"  Stage 2: {len(stage2_results)} rankings")
+            logger.info(f"  Stage 3: {len(stage3_result.get('response', ''))} chars")
+            logger.debug(f"  Stage 1 data: {stage1_results}")
+            logger.debug(f"  Stage 2 data: {stage2_results}")
+            logger.debug(f"  Stage 3 data: {stage3_result}")
+            
             storage.add_assistant_message(
                 conversation_id=conversation_id,
                 stage1=stage1_results,
@@ -355,6 +387,8 @@ async def send_message_stream(conversation_id: str, request: MessageRequest, x_u
                 user_id=x_user_id,
                 metadata=metadata
             )
+            
+            logger.info(f"✅ Assistant message saved successfully")
             
             # Update conversation title if this is the first message
             if len(conversation["messages"]) == 0:
@@ -400,6 +434,145 @@ async def delete_conversation(conversation_id: str, x_user_id: str = Header(...)
     except Exception as e:
         logger.error(f"Error deleting conversation {conversation_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to delete conversation")
+
+
+@app.get("/api/conversations/{conversation_id}/export/markdown")
+async def export_conversation_markdown(conversation_id: str, x_user_id: str = Header(...)):
+    """
+    Export conversation to Markdown format.
+    
+    Requirements: 3.2
+    """
+    try:
+        # Get conversation
+        conversation = storage.get_conversation(conversation_id, user_id=x_user_id)
+        
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversation not found")
+        
+        # Generate Markdown
+        markdown_content = ExportService.export_to_markdown(conversation)
+        
+        # Generate filename
+        filename = generate_export_filename(conversation, 'markdown')
+        
+        # Return as downloadable file
+        return Response(
+            content=markdown_content,
+            media_type="text/markdown",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error exporting conversation to Markdown: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to export conversation")
+
+
+@app.get("/api/conversations/{conversation_id}/export/json")
+async def export_conversation_json(conversation_id: str, x_user_id: str = Header(...)):
+    """
+    Export conversation to JSON format.
+    
+    Requirements: 3.4
+    """
+    try:
+        # Get conversation
+        conversation = storage.get_conversation(conversation_id, user_id=x_user_id)
+        
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversation not found")
+        
+        # Generate JSON
+        json_content = ExportService.export_to_json(conversation)
+        
+        # Generate filename
+        filename = generate_export_filename(conversation, 'json')
+        
+        # Return as downloadable file
+        return Response(
+            content=json_content,
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error exporting conversation to JSON: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to export conversation")
+
+
+@app.get("/api/conversations/{conversation_id}/export/pdf")
+async def export_conversation_pdf(conversation_id: str, x_user_id: str = Header(...)):
+    """
+    Export conversation to PDF format.
+    
+    Requirements: 3.3
+    """
+    try:
+        # Get conversation
+        logger.info(f"📄 Export: Retrieving conversation {conversation_id} for PDF export")
+        conversation = storage.get_conversation(conversation_id, user_id=x_user_id)
+        
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversation not found")
+        
+        # DIAGNOSTIC: Log conversation structure
+        logger.info(f"📄 Export: Retrieved conversation with {len(conversation.get('messages', []))} messages")
+        for i, msg in enumerate(conversation.get('messages', [])):
+            if msg.get('role') == 'assistant':
+                has_stage1 = bool(msg.get('stage1'))
+                has_stage2 = bool(msg.get('stage2'))
+                has_stage3 = bool(msg.get('stage3'))
+                logger.info(f"  Message {i}: Assistant - Stage1: {has_stage1}, Stage2: {has_stage2}, Stage3: {has_stage3}")
+                if has_stage1:
+                    logger.info(f"    Stage 1: {len(msg.get('stage1', []))} responses")
+                if has_stage2:
+                    logger.info(f"    Stage 2: {len(msg.get('stage2', []))} rankings")
+                if has_stage3:
+                    logger.info(f"    Stage 3: {len(msg.get('stage3', {}).get('response', ''))} chars")
+                logger.debug(f"    Full message data: {msg}")
+        
+        # Generate PDF
+        try:
+            pdf_bytes = ExportService.export_to_pdf(conversation)
+        except ValueError as e:
+            # User-friendly error for PDF generation issues
+            logger.error(f"PDF generation failed for {conversation_id}: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
+        except ImportError as e:
+            # Missing dependency error
+            logger.error(f"PDF export dependency missing: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail="PDF export is not available. Please contact support.")
+        except Exception as e:
+            logger.error(f"Unexpected error during PDF generation: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail="An unexpected error occurred during PDF export")
+        
+        # Generate filename
+        filename = generate_export_filename(conversation, 'pdf')
+        
+        logger.info(f"✅ PDF export completed successfully for {conversation_id} ({len(pdf_bytes)} bytes)")
+        
+        # Return as downloadable file
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error exporting conversation to PDF: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to export conversation")
 
 
 # Payment endpoints

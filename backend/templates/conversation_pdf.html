@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 100%;
+        }
+        
+        h1 {
+            color: #4ECDC4;
+            border-bottom: 3px solid #4ECDC4;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            color: #2C3E50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            page-break-after: avoid;
+        }
+        
+        h3 {
+            color: #34495E;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        h4 {
+            color: #7F8C8D;
+            margin-top: 15px;
+            margin-bottom: 8px;
+        }
+        
+        .metadata {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            border-left: 4px solid #4ECDC4;
+        }
+        
+        .metadata p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .message {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+        
+        .user-message {
+            background-color: #E8F5E9;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            page-break-inside: avoid;
+        }
+        
+        .assistant-message {
+            background-color: #E3F2FD;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2196F3;
+            page-break-inside: avoid;
+        }
+        
+        .stage {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            page-break-inside: auto;
+            overflow: visible;
+        }
+        
+        .stage h3 {
+            page-break-after: avoid;
+            margin-top: 0;
+        }
+        
+        .model-response {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-left: 3px solid #4ECDC4;
+            page-break-inside: auto;
+            overflow: visible;
+        }
+        
+        .model-response p {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            margin: 0;
+        }
+        
+        .ranking {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f5f5f5;
+            page-break-inside: auto;
+            overflow: visible;
+        }
+        
+        .ranking-item {
+            margin: 8px 0;
+            padding-left: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .final-answer {
+            background-color: #FFF9C4;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #FFC107;
+            margin-top: 15px;
+            page-break-inside: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            overflow: visible;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #e0e0e0;
+            margin: 30px 0;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+            color: #777;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    
+    <div class="metadata">
+        <p><strong>Created:</strong> {{ created_at }}</p>
+        <p><strong>Conversation ID:</strong> {{ conversation_id }}</p>
+        <p><strong>Exported:</strong> {{ exported_at }}</p>
+    </div>
+    
+    {% if warnings %}
+    <div style="background-color: #FFF3CD; border-left: 4px solid #FFC107; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+        <h3 style="color: #856404; margin-top: 0;">⚠️ Export Warnings</h3>
+        <ul style="margin: 10px 0; color: #856404;">
+        {% for warning in warnings %}
+            <li>{{ warning }}</li>
+        {% endfor %}
+        </ul>
+        <p style="font-size: 14px; color: #856404; margin-bottom: 0;">Some conversation data may be incomplete. This could happen if the conversation was interrupted or if there were errors during the council process.</p>
+    </div>
+    {% endif %}
+    
+    {% for message in messages %}
+    <div class="message">
+        {% if message.role == 'user' %}
+        <h2>Message {{ loop.index }}: User</h2>
+        <div class="user-message">
+            {{ message.content }}
+        </div>
+        
+        {% elif message.role == 'assistant' %}
+        <h2>Message {{ loop.index }}: Assistant Response</h2>
+        
+        {% if message.stage1 %}
+        <div class="stage">
+            <h3>Stage 1: Individual Model Responses</h3>
+            {% for response in message.stage1 %}
+            <div class="model-response">
+                <h4>{{ response.model }}</h4>
+                <p>{{ response.response }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% if message.stage2 %}
+        <div class="stage">
+            <h3>Stage 2: Peer Rankings</h3>
+            {% for ranking in message.stage2 %}
+            <div class="ranking">
+                <h4>{{ ranking.model }}'s Rankings</h4>
+                <div class="ranking-item">
+                    {{ ranking.ranking }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% if message.stage3 %}
+        <div class="stage">
+            <h3>Stage 3: Chairman Synthesis</h3>
+            <div class="final-answer">
+                {{ message.stage3.response or message.stage3.final_answer }}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% endif %}
+    </div>
+    
+    {% if not loop.last %}
+    <hr>
+    {% endif %}
+    {% endfor %}
+    
+    <div class="footer">
+        <p>Generated by Mirmer AI - Multi-LLM Council Consultation</p>
+    </div>
+</body>
+</html>

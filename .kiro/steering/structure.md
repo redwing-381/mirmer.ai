@@ -52,7 +52,8 @@ frontend/
 │   ├── firebase.js            # Firebase authentication setup
 │   ├── components/
 │   │   ├── ChatInterface.jsx  # Main chat UI with 3-stage tabs
-│   │   ├── Sidebar.jsx        # Conversation list sidebar
+│   │   ├── Sidebar.jsx        # Conversation list sidebar with search
+│   │   ├── SearchBar.jsx      # Search input with debouncing
 │   │   ├── Stage1.jsx         # Stage 1 individual responses display
 │   │   ├── Stage2.jsx         # Stage 2 peer rankings display
 │   │   ├── Stage3.jsx         # Stage 3 chairman synthesis display
@@ -61,6 +62,7 @@ frontend/
 │   │   ├── UsageStats.jsx     # Usage tracking display
 │   │   ├── UpgradeModal.jsx   # Pro subscription upgrade modal
 │   │   ├── SubscriptionManager.jsx  # Subscription management
+│   │   ├── EnterpriseContactModal.jsx  # Enterprise inquiry form
 │   │   ├── landing/           # Landing page components
 │   │   │   ├── HeroSection.jsx
 │   │   │   ├── FeaturesSection.jsx
@@ -112,8 +114,15 @@ The backend uses a factory pattern to automatically select storage backend:
 ### State Management
 - Firebase auth state managed in `App.jsx`
 - Conversation state managed in `AppPage.jsx`
+- Search state managed in `Sidebar.jsx` with debounced API calls
 - Local component state with React hooks
 - No global state management library (Redux, Zustand, etc.)
+
+### Search Implementation
+- **Frontend**: SearchBar component with 300ms debounce
+- **Backend**: Full-text search through conversation titles and message content
+- **API**: `GET /api/conversations/search?q={query}`
+- **Storage**: Implemented in both `storage_json.py` and `storage_postgres.py`
 
 ## Data Flow
 

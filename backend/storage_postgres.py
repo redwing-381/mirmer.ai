@@ -88,6 +88,15 @@ def get_conversation(conversation_id: str, user_id: str) -> Optional[Dict[str, A
                         'content': msg.content
                     })
                 else:  # assistant
+                    # DIAGNOSTIC: Log what we're retrieving from DB
+                    logger.info(f"📖 Storage: Retrieved assistant message from DB")
+                    logger.info(f"  Stage 1 from DB: type={type(msg.stage1_data)}, length={len(msg.stage1_data) if msg.stage1_data else 0}")
+                    logger.info(f"  Stage 2 from DB: type={type(msg.stage2_data)}, length={len(msg.stage2_data) if msg.stage2_data else 0}")
+                    logger.info(f"  Stage 3 from DB: type={type(msg.stage3_data)}, keys={list(msg.stage3_data.keys()) if msg.stage3_data else []}")
+                    logger.debug(f"  Stage 1 DB content: {msg.stage1_data}")
+                    logger.debug(f"  Stage 2 DB content: {msg.stage2_data}")
+                    logger.debug(f"  Stage 3 DB content: {msg.stage3_data}")
+                    
                     messages.append({
                         'role': 'assistant',
                         'stage1': msg.stage1_data or [],
@@ -96,7 +105,7 @@ def get_conversation(conversation_id: str, user_id: str) -> Optional[Dict[str, A
                         'metadata': msg.message_metadata or {}
                     })
             
-            logger.debug(f"Loaded conversation: {conversation_id} with {len(messages)} messages")
+            logger.info(f"📖 Storage: Loaded conversation {conversation_id} with {len(messages)} messages")
             
             return {
                 'id': db_conversation.id,
@@ -318,6 +327,16 @@ def add_assistant_message(
                 logger.error(f"Cannot add assistant message: conversation {conversation_id} not found")
                 return False
             
+            # DIAGNOSTIC: Log what we're about to save
+            logger.info(f"💾 Storage: Saving assistant message to DB")
+            logger.info(f"  Conversation: {conversation_id}")
+            logger.info(f"  Stage 1 type: {type(stage1)}, length: {len(stage1) if stage1 else 0}")
+            logger.info(f"  Stage 2 type: {type(stage2)}, length: {len(stage2) if stage2 else 0}")
+            logger.info(f"  Stage 3 type: {type(stage3)}, keys: {list(stage3.keys()) if stage3 else []}")
+            logger.debug(f"  Stage 1 content: {stage1}")
+            logger.debug(f"  Stage 2 content: {stage2}")
+            logger.debug(f"  Stage 3 content: {stage3}")
+            
             # Create message
             db_message = Message(
                 conversation_id=conversation_id,
@@ -334,7 +353,7 @@ def add_assistant_message(
             db_conversation.updated_at = datetime.utcnow()
             
             session.commit()
-            logger.debug(f"Added assistant message to conversation: {conversation_id}")
+            logger.info(f"✅ Storage: Assistant message saved to DB successfully")
             return True
             
         except Exception as e:

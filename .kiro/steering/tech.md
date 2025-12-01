@@ -39,12 +39,13 @@ inclusion: always
 - `psycopg2-binary` - PostgreSQL adapter
 - `razorpay` - Payment processing
 - `python-dotenv` - Environment variable management
+- `sendgrid` - Email service for enterprise inquiries
 
 ### Frontend
 - `react` & `react-dom` - UI framework
 - `react-router-dom` - Client-side routing
 - `firebase` - Authentication
-- `lucide-react` - Icon library
+- `lucide-react` - Icon library (Search, X, ChevronLeft, ChevronRight, etc.)
 - `tailwindcss` - Utility-first CSS
 - `class-variance-authority` & `clsx` - Component styling utilities
 
@@ -77,6 +78,23 @@ cd frontend
 npm install
 ```
 
+### Python Command
+
+**IMPORTANT**: This project uses `uv` as the Python package manager. Always use `uv run` to execute Python commands:
+
+```bash
+# Run Python scripts
+uv run python script.py
+
+# Run pytest
+uv run pytest test_file.py
+
+# Run any Python module
+uv run python -m module_name
+```
+
+**DO NOT** use `python` or `python3` directly - they won't have access to the project dependencies. Always prefix with `uv run`.
+
 ### Database
 
 ```bash
@@ -92,10 +110,10 @@ python migrate_add_subscription_fields.py
 ### Testing
 
 ```bash
-# Backend tests
+# Backend tests (always use uv run)
 cd backend
-python test_usage.py
-python test_models.py
+uv run pytest test_file.py
+uv run python test_usage.py
 
 # Frontend tests (if configured)
 cd frontend

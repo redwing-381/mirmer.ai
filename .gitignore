@@ -32,6 +32,14 @@ ENV/
 # Data
 data/
 
+# Test outputs and artifacts
+test_*.pdf
+test_*.md
+test_*.json
+*_test_output.*
+.pytest_cache/
+.hypothesis/
+
 # Node
 node_modules/
 npm-debug.log*

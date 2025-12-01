@@ -343,6 +343,7 @@ function AppPage() {
           onSendMessage={handleSendMessage}
           loading={messageLoading}
           usageStats={usageStats}
+          userId={user?.uid}
         />
       </div>
     </div>

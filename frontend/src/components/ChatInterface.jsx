@@ -3,14 +3,15 @@ import Stage1 from './Stage1'
 import Stage2 from './Stage2'
 import Stage3 from './Stage3'
 import UpgradeModal from './UpgradeModal'
+import ExportMenu from './ExportMenu'
 
 /**
  * ChatInterface Component
  * Displays messages and handles user input.
  * 
- * Requirements: 2.1, 2.2, 2.4
+ * Requirements: 2.1, 2.2, 2.4, 3.1
  */
-export default function ChatInterface({ conversation, onSendMessage, loading, usageStats }) {
+export default function ChatInterface({ conversation, onSendMessage, loading, usageStats, userId }) {
   const [input, setInput] = useState('')
   const messagesEndRef = useRef(null)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
@@ -84,6 +85,20 @@ export default function ChatInterface({ conversation, onSendMessage, loading, us
 
   return (
     <div className="flex-1 flex flex-col bg-[#f5f5f5] min-h-0">
+      {/* Header with Export Button */}
+      <div className="border-b-4 border-black bg-white px-6 py-4 flex-shrink-0">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-black truncate">{conversation.title || 'New Conversation'}</h1>
+          </div>
+          {conversation.messages && conversation.messages.length > 0 && (
+            <div className="ml-4">
+              <ExportMenu conversationId={conversation.id} userId={userId} />
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-6 min-h-0" style={{
         backgroundImage: `
