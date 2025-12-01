@@ -53,3 +53,6 @@ psycopg2-binary>=2.9.0
 
 # Payment processing
 razorpay>=1.4.0
+
+# Email service
+sendgrid>=6.11.0
