@@ -308,6 +308,7 @@ function AppPage() {
         onDeleteConversation={handleDeleteConversation}
         isCollapsed={sidebarCollapsed}
         onToggleCollapse={handleToggleSidebar}
+        userId={user?.uid}
       />
 
       {/* Scrollable Chat Area */}

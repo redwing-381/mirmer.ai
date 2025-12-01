@@ -206,6 +206,32 @@ async def list_conversations(x_user_id: str = Header(...)):
         raise HTTPException(status_code=500, detail="Failed to list conversations")
 
 
+@app.get("/api/conversations/search")
+async def search_conversations(q: str, x_user_id: str = Header(...)):
+    """
+    Search conversations by title and message content.
+    
+    Args:
+        q: Search query string
+        x_user_id: Firebase user ID from header
+    
+    Returns:
+        List of matching conversations with snippets
+    
+    Requirements: 2.1
+    """
+    try:
+        if not q or not q.strip():
+            return {"results": []}
+        
+        results = storage.search_conversations(user_id=x_user_id, query=q)
+        return {"results": results, "query": q, "count": len(results)}
+        
+    except Exception as e:
+        logger.error(f"Error searching conversations: {str(e)}")
+        raise HTTPException(status_code=500, detail="Search failed")
+
+
 @app.get("/api/conversations/{conversation_id}")
 async def get_conversation(conversation_id: str, x_user_id: str = Header(...)):
     """
@@ -225,7 +251,6 @@ async def get_conversation(conversation_id: str, x_user_id: str = Header(...)):
     except Exception as e:
         logger.error(f"Error getting conversation {conversation_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get conversation")
-
 
 
 import json

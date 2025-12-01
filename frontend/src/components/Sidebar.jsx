@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Settings, ChevronLeft, ChevronRight } from 'lucide-react'
+import SearchBar from './SearchBar'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,11 +26,14 @@ export default function Sidebar({
   onNewConversation,
   onDeleteConversation,
   isCollapsed = false,
-  onToggleCollapse
+  onToggleCollapse,
+  userId
 }) {
   const navigate = useNavigate()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [conversationToDelete, setConversationToDelete] = useState(null)
+  const [searchResults, setSearchResults] = useState(null)
+  const [isSearching, setIsSearching] = useState(false)
   
   const handleDeleteClick = (conversationId) => {
     setConversationToDelete(conversationId)
@@ -42,6 +46,43 @@ export default function Sidebar({
       setConversationToDelete(null)
     }
   }
+
+  const handleSearch = useCallback(async (query) => {
+    if (!query.trim()) {
+      setSearchResults(null)
+      return
+    }
+
+    setIsSearching(true)
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || ''
+      const response = await fetch(`${apiUrl}/api/conversations/search?q=${encodeURIComponent(query)}`, {
+        headers: {
+          'x-user-id': userId
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setSearchResults(data.results)
+      } else {
+        console.error('Search failed:', response.statusText)
+        setSearchResults([])
+      }
+    } catch (error) {
+      console.error('Error searching conversations:', error)
+      setSearchResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }, [userId])
+
+  const handleClearSearch = useCallback(() => {
+    setSearchResults(null)
+  }, [])
+
+  // Determine which conversations to display
+  const displayedConversations = searchResults !== null ? searchResults : conversations
   
   const formatDate = (isoString) => {
     if (!isoString) return ''
@@ -63,24 +104,36 @@ export default function Sidebar({
         <h2 className="text-2xl font-black mb-3">CONVERSATIONS</h2>
         <button
           onClick={onNewConversation}
-          className="w-full px-4 py-3 bg-[#FF6B6B] text-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all font-black"
+          className="w-full px-4 py-3 bg-[#FF6B6B] text-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all font-black mb-3"
         >
           + New Conversation
         </button>
+        <SearchBar onSearch={handleSearch} onClear={handleClearSearch} />
       </div>
 
       {/* Conversation List */}
       <div className="flex-1 overflow-y-auto bg-[#f5f5f5]">
-        {conversations.length === 0 ? (
+        {isSearching ? (
           <div className="p-6 text-center">
             <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4">
-              <p className="font-black text-lg">No conversations yet</p>
-              <p className="text-sm mt-2 font-bold">Start a new one</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#4ECDC4] border-t-transparent mx-auto"></div>
+              <p className="font-bold text-sm mt-2">Searching...</p>
+            </div>
+          </div>
+        ) : displayedConversations.length === 0 ? (
+          <div className="p-6 text-center">
+            <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4">
+              <p className="font-black text-lg">
+                {searchResults !== null ? 'No results found' : 'No conversations yet'}
+              </p>
+              <p className="text-sm mt-2 font-bold">
+                {searchResults !== null ? 'Try a different search' : 'Start a new one'}
+              </p>
             </div>
           </div>
         ) : (
           <div className="p-2 space-y-2">
-            {conversations.map((conversation) => {
+            {displayedConversations.map((conversation) => {
               const isActive = conversation.id === currentConversationId
               
               return (

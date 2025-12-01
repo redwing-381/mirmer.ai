@@ -318,3 +318,82 @@ def delete_conversation(conversation_id: str, user_id: str) -> bool:
     except Exception as e:
         logger.error(f"Error deleting conversation {conversation_id}: {str(e)}")
         return False
+
+
+def search_conversations(user_id: str, query: str, limit: int = 50) -> List[Dict[str, Any]]:
+    """
+    Search conversations by title and message content (JSON storage version).
+    
+    Args:
+        user_id: Firebase user ID
+        query: Search query string
+        limit: Maximum number of results to return
+    
+    Returns:
+        List of matching conversations with snippets
+    """
+    try:
+        query_lower = query.lower().strip()
+        if not query_lower:
+            return []
+        
+        user_dir = Path(DATA_DIR) / user_id
+        if not user_dir.exists():
+            return []
+        
+        results = []
+        
+        # Search through all conversation files
+        for conv_file in user_dir.glob('*.json'):
+            try:
+                with open(conv_file, 'r') as f:
+                    conversation = json.load(f)
+                
+                # Check if query matches title
+                title_match = query_lower in conversation.get('title', '').lower()
+                
+                # Check if query matches any message content
+                snippet = None
+                for msg in conversation.get('messages', []):
+                    if msg.get('role') == 'user' and msg.get('content'):
+                        content = msg['content']
+                        if query_lower in content.lower():
+                            # Extract snippet around match
+                            content_lower = content.lower()
+                            match_pos = content_lower.find(query_lower)
+                            
+                            start = max(0, match_pos - 50)
+                            end = min(len(content), match_pos + len(query) + 50)
+                            
+                            snippet = content[start:end]
+                            if start > 0:
+                                snippet = '...' + snippet
+                            if end < len(content):
+                                snippet = snippet + '...'
+                            break
+                
+                # Add to results if there's a match
+                if title_match or snippet:
+                    results.append({
+                        'id': conversation['id'],
+                        'title': conversation.get('title', 'New Conversation'),
+                        'created_at': conversation.get('created_at', ''),
+                        'updated_at': conversation.get('updated_at', conversation.get('created_at', '')),
+                        'snippet': snippet or conversation.get('title', 'New Conversation'),
+                        'match_in_title': title_match
+                    })
+                    
+            except Exception as e:
+                logger.error(f"Error reading conversation file {conv_file}: {e}")
+                continue
+        
+        # Sort by updated_at (most recent first) and limit results
+        results.sort(key=lambda x: x['updated_at'], reverse=True)
+        results = results[:limit]
+        
+        logger.info(f"Search for '{query}' returned {len(results)} results")
+        return results
+        
+    except Exception as e:
+        logger.error(f"Error searching conversations: {e}")
+        return []

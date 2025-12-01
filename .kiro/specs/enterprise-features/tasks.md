@@ -61,12 +61,12 @@
   - _Requirements: 1.2, 1.3_
 
 - [ ] 4. Implement conversation search functionality
-- [ ] 4.1 Add full-text search indexes to conversations table
+- [x] 4.1 Add full-text search indexes to conversations table
   - Create database migration to add search indexes on title and messages
   - Optimize for search performance
   - _Requirements: 2.1_
 
-- [ ] 4.2 Implement GET /api/conversations/search endpoint
+- [x] 4.2 Implement GET /api/conversations/search endpoint
   - Add query parameter parsing
   - Implement PostgreSQL full-text search query
   - Return matching conversations with snippets
@@ -76,13 +76,13 @@
   - **Property 6: Search results match query**
   - **Validates: Requirements 2.1**
 
-- [ ] 4.4 Create SearchBar component for frontend
+- [x] 4.4 Create SearchBar component for frontend
   - Build search input with real-time filtering
   - Implement debouncing for search queries
   - Display search results with highlighting
   - _Requirements: 2.1, 2.2_
 
-- [ ] 4.5 Integrate SearchBar into Sidebar component
+- [x] 4.5 Integrate SearchBar into Sidebar component
   - Add search bar above conversation list
   - Update conversation list to show search results
   - _Requirements: 2.1, 2.2_

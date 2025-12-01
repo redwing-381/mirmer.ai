@@ -377,3 +377,110 @@ def update_conversation_title(conversation_id: str, title: str, user_id: str) ->
             session.rollback()
             logger.error(f"Error updating title for {conversation_id}: {e}")
             return False
+
+
+def search_conversations(user_id: str, query: str, limit: int = 50) -> List[Dict[str, Any]]:
+    """
+    Search conversations by title and message content using PostgreSQL full-text search.
+    
+    Args:
+        user_id: Firebase user ID
+        query: Search query string
+        limit: Maximum number of results to return
+    
+    Returns:
+        List of matching conversations with snippets
+    """
+    with SessionLocal() as session:
+        try:
+            from sqlalchemy import func, or_
+            
+            # Sanitize query for tsquery
+            search_query = query.strip()
+            if not search_query:
+                return []
+            
+            # Create tsquery-compatible search term
+            # Replace spaces with & for AND search
+            ts_query = ' & '.join(search_query.split())
+            
+            # Search in conversation titles and message content
+            results = session.query(Conversation).filter(
+                Conversation.user_id == user_id
+            ).filter(
+                or_(
+                    # Search in conversation title
+                    func.to_tsvector('english', Conversation.title).op('@@')(
+                        func.to_tsquery('english', ts_query)
+                    ),
+                    # Search in messages
+                    Conversation.id.in_(
+                        session.query(Message.conversation_id).filter(
+                            func.to_tsvector('english', func.coalesce(Message.content, '')).op('@@')(
+                                func.to_tsquery('english', ts_query)
+                            )
+                        )
+                    )
+                )
+            ).options(
+                joinedload(Conversation.messages)
+            ).order_by(
+                Conversation.updated_at.desc()
+            ).limit(limit).all()
+            
+            # Format results with snippets
+            formatted_results = []
+            for conv in results:
+                # Find matching message snippet
+                snippet = None
+                for msg in conv.messages:
+                    if msg.content and query.lower() in msg.content.lower():
+                        # Extract snippet around match
+                        content_lower = msg.content.lower()
+                        query_lower = query.lower()
+                        match_pos = content_lower.find(query_lower)
+                        
+                        start = max(0, match_pos - 50)
+                        end = min(len(msg.content), match_pos + len(query) + 50)
+                        
+                        snippet = msg.content[start:end]
+                        if start > 0:
+                            snippet = '...' + snippet
+                        if end < len(msg.content):
+                            snippet = snippet + '...'
+                        break
+                
+                formatted_results.append({
+                    'id': conv.id,
+                    'title': conv.title,
+                    'created_at': conv.created_at.isoformat(),
+                    'updated_at': conv.updated_at.isoformat(),
+                    'snippet': snippet or conv.title,
+                    'match_in_title': query.lower() in conv.title.lower()
+                })
+            
+            logger.info(f"Search for '{query}' returned {len(formatted_results)} results")
+            return formatted_results
+            
+        except Exception as e:
+            logger.error(f"Error searching conversations: {e}")
+            # Fallback to simple LIKE search if full-text search fails
+            try:
+                results = session.query(Conversation).filter(
+                    Conversation.user_id == user_id,
+                    Conversation.title.ilike(f'%{query}%')
+                ).order_by(
+                    Conversation.updated_at.desc()
+                ).limit(limit).all()
+                
+                return [{
+                    'id': conv.id,
+                    'title': conv.title,
+                    'created_at': conv.created_at.isoformat(),
+                    'updated_at': conv.updated_at.isoformat(),
+                    'snippet': conv.title,
+                    'match_in_title': True
+                } for conv in results]
+            except Exception as fallback_error:
+                logger.error(f"Fallback search also failed: {fallback_error}")
+                return []
