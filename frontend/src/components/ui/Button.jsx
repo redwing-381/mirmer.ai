@@ -17,6 +17,7 @@ export function Button({
     neutral: 'bg-white hover:bg-gray-50 text-black',
     primary: 'bg-yellow-400 hover:bg-yellow-500 text-black',
     danger: 'bg-red-500 hover:bg-red-600 text-white',
+    noShadow: 'bg-white hover:bg-gray-50 text-black',
   }
   
   const sizes = {
