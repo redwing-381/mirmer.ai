@@ -29,7 +29,8 @@ export default function EnterpriseContactModal({ isOpen, onClose }) {
     setSubmitStatus(null)
 
     try {
-      const response = await fetch('/api/enterprise/contact', {
+      const apiUrl = import.meta.env.VITE_API_URL || ''
+      const response = await fetch(`${apiUrl}/api/enterprise/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
