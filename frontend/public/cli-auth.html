@@ -100,10 +100,11 @@
         const urlParams = new URLSearchParams(window.location.search);
         let callbackUrl = urlParams.get('callback');
 
-        // Check if we're returning from a redirect
-        checkRedirectResult();
+        // Initialize the page
+        init();
 
-        async function checkRedirectResult() {
+        async function init() {
+            // First check if we're returning from a redirect
             try {
                 const result = await getRedirectResult(auth);
                 if (result) {
@@ -111,11 +112,13 @@
                     const user = result.user;
                     const spinner = document.getElementById('spinner');
                     spinner.style.display = 'block';
+                    document.getElementById('signInBtn').style.display = 'none';
                     
                     // Get callback URL from sessionStorage
                     callbackUrl = sessionStorage.getItem('mirmer_callback_url');
                     
                     if (!callbackUrl) {
+                        spinner.style.display = 'none';
                         document.getElementById('content').innerHTML = '<div class="error">Session expired. Please run "mirmer login" again.</div>';
                         return;
                     }
@@ -132,20 +135,24 @@
                     setTimeout(() => {
                         window.location.href = `${callbackUrl}?token=${token}&email=${encodeURIComponent(user.email)}`;
                     }, 1000);
+                    return;
                 }
             } catch (error) {
                 console.error('Redirect result error:', error);
+                document.getElementById('spinner').style.display = 'none';
                 document.getElementById('content').innerHTML = `<div class="error">Authentication failed: ${error.message}</div><br><button class="button" onclick="location.reload()">Try Again</button>`;
+                return;
             }
-        }
 
-        if (!callbackUrl && !sessionStorage.getItem('mirmer_callback_url')) {
-            document.getElementById('message').textContent = 'Error: Missing callback URL';
-            document.getElementById('content').innerHTML = '<div class="error">Please run "mirmer login" from your terminal</div>';
-        } else if (callbackUrl) {
-            // Store callback URL before redirect
-            sessionStorage.setItem('mirmer_callback_url', callbackUrl);
-            document.getElementById('signInBtn').addEventListener('click', signInWithGoogle);
+            // Not returning from redirect, check if we have a callback URL
+            if (!callbackUrl && !sessionStorage.getItem('mirmer_callback_url')) {
+                document.getElementById('message').textContent = 'Error: Missing callback URL';
+                document.getElementById('content').innerHTML = '<div class="error">Please run "mirmer login" from your terminal</div>';
+            } else if (callbackUrl) {
+                // Store callback URL before redirect
+                sessionStorage.setItem('mirmer_callback_url', callbackUrl);
+                document.getElementById('signInBtn').addEventListener('click', signInWithGoogle);
+            }
         }
 
         async function signInWithGoogle() {
