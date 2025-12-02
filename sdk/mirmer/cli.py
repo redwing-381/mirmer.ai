@@ -16,13 +16,13 @@ from mirmer.exceptions import MirmerError
 
 
 @click.group()
-@click.option("--api-key", envvar="MIRMER_API_KEY", help="API key for authentication (or set MIRMER_API_KEY env var)")
+@click.option("--base-url", default="https://mirmer-ai.vercel.app", help="Base URL of Mirmer AI frontend")
 @click.option("--api-url", default="https://mirmerai-production.up.railway.app", help="Base URL of Mirmer AI API")
 @click.pass_context
-def cli(ctx, api_key, api_url):
+def cli(ctx, base_url, api_url):
     """Mirmer AI - Multi-LLM consultation system CLI."""
     ctx.ensure_object(dict)
-    ctx.obj["api_key"] = api_key
+    ctx.obj["base_url"] = base_url
     ctx.obj["api_url"] = api_url
 
 
@@ -68,20 +68,15 @@ def whoami(ctx):
 @click.pass_context
 def query(ctx, message, conversation_id, stream):
     """Send a query to Mirmer AI council."""
-    api_key = ctx.obj.get("api_key")
+    base_url = ctx.obj["base_url"]
     api_url = ctx.obj["api_url"]
 
-    if not api_key:
-        click.echo(click.style("❌ Error: No API key provided", fg="red"))
-        click.echo("\nPlease provide an API key using one of these methods:")
-        click.echo("  1. Command line: mirmer --api-key YOUR_KEY query \"message\"")
-        click.echo("  2. Environment variable: export MIRMER_API_KEY=YOUR_KEY")
-        click.echo("\nGet your API key from: https://mirmer-ai.vercel.app")
-        sys.exit(1)
-
     try:
-        # Create client
-        client = Client(api_key=api_key, base_url=api_url)
+        # Ensure authenticated (uses Vercel frontend)
+        token = ensure_authenticated(base_url)
+
+        # Create client (uses Railway API)
+        client = Client(api_key=token, base_url=api_url)
 
         if stream:
             # Stream responses
@@ -142,16 +137,12 @@ def query(ctx, message, conversation_id, stream):
 @click.pass_context
 def conversations(ctx):
     """List all conversations."""
-    api_key = ctx.obj.get("api_key")
+    base_url = ctx.obj["base_url"]
     api_url = ctx.obj["api_url"]
 
-    if not api_key:
-        click.echo(click.style("❌ Error: No API key provided", fg="red"))
-        click.echo("Set MIRMER_API_KEY environment variable or use --api-key option")
-        sys.exit(1)
-
     try:
-        client = Client(api_key=api_key, base_url=api_url)
+        token = ensure_authenticated(base_url)
+        client = Client(api_key=token, base_url=api_url)
 
         convs = client.list_conversations()
 
@@ -178,16 +169,12 @@ def conversations(ctx):
 @click.pass_context
 def search(ctx, query_string):
     """Search conversations."""
-    api_key = ctx.obj.get("api_key")
+    base_url = ctx.obj["base_url"]
     api_url = ctx.obj["api_url"]
 
-    if not api_key:
-        click.echo(click.style("❌ Error: No API key provided", fg="red"))
-        click.echo("Set MIRMER_API_KEY environment variable or use --api-key option")
-        sys.exit(1)
-
     try:
-        client = Client(api_key=api_key, base_url=api_url)
+        token = ensure_authenticated(base_url)
+        client = Client(api_key=token, base_url=api_url)
 
         results = client.search_conversations(query_string)
 
