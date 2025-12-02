@@ -8,7 +8,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #FFE66D;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -17,63 +17,95 @@
         }
         .container {
             background: white;
-            border-radius: 16px;
+            border: 4px solid black;
+            box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
             padding: 48px;
             max-width: 500px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             text-align: center;
         }
-        .logo { font-size: 48px; margin-bottom: 16px; }
-        h1 { color: #1a202c; font-size: 28px; margin-bottom: 12px; }
-        p { color: #718096; font-size: 16px; margin-bottom: 32px; line-height: 1.6; }
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: #4ECDC4;
+            border: 4px solid black;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 900;
+        }
+        h1 { 
+            color: black; 
+            font-size: 32px; 
+            margin-bottom: 12px; 
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
+        p { 
+            color: #333; 
+            font-size: 16px; 
+            margin-bottom: 32px; 
+            line-height: 1.6;
+            font-weight: 700;
+        }
         .spinner {
             width: 48px;
             height: 48px;
-            border: 4px solid #e2e8f0;
-            border-top-color: #667eea;
-            border-radius: 50%;
+            border: 4px solid #f5f5f5;
+            border-top-color: black;
+            border-radius: 0;
             animation: spin 1s linear infinite;
             margin: 0 auto 24px;
             display: none;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #FF6B6B;
             color: white;
-            border: none;
-            padding: 14px 32px;
+            border: 4px solid black;
+            padding: 16px 32px;
             font-size: 16px;
-            font-weight: 600;
-            border-radius: 8px;
+            font-weight: 900;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s;
+            box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px 0px rgba(0,0,0,1);
+        }
+        .button:active {
+            transform: translate(1px, 1px);
+            box-shadow: none;
         }
         .error {
-            background: #fed7d7;
-            color: #c53030;
+            background: #FF6B6B;
+            color: white;
             padding: 16px;
-            border-radius: 8px;
+            border: 4px solid black;
             margin-top: 24px;
             font-size: 14px;
+            font-weight: 700;
         }
         .success {
-            background: #c6f6d5;
-            color: #22543d;
+            background: #4ECDC4;
+            color: black;
             padding: 16px;
-            border-radius: 8px;
+            border: 4px solid black;
             margin-top: 24px;
             font-size: 14px;
+            font-weight: 700;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">🤖</div>
+        <div class="logo">M</div>
         <h1>Mirmer AI CLI</h1>
         <p id="message">Sign in with Google to use the CLI</p>
         <div class="spinner" id="spinner"></div>
@@ -84,11 +116,11 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAuth, signInWithRedirect, getRedirectResult, onAuthStateChanged, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyC3UJ_Mh36gETyHrBCNHSCO9vwhzmA0rpk",
-            authDomain: "mirmer-ai.firebaseapp.com",
+            authDomain: "mirmer-ai.vercel.app",
             projectId: "mirmer-ai",
             storageBucket: "mirmer-ai.firebasestorage.app",
             messagingSenderId: "105319741582",
@@ -99,50 +131,44 @@
         const auth = getAuth(app);
         const urlParams = new URLSearchParams(window.location.search);
         let callbackUrl = urlParams.get('callback');
+        let authHandled = false;
 
-        // Initialize the page
         init();
 
         async function init() {
             const spinner = document.getElementById('spinner');
             const signInBtn = document.getElementById('signInBtn');
             
-            // First check if we're returning from a redirect
-            try {
-                console.log('Checking redirect result...');
-                const result = await getRedirectResult(auth);
-                console.log('Redirect result:', result);
-                
-                if (result) {
-                    // User just signed in via redirect
-                    await handleAuthSuccess(result.user);
-                    return;
+            if (callbackUrl) {
+                sessionStorage.setItem('mirmer_callback_url', callbackUrl);
+            }
+            
+            // Listen for auth state changes
+            onAuthStateChanged(auth, async (user) => {
+                if (user && !authHandled && sessionStorage.getItem('mirmer_callback_url')) {
+                    authHandled = true;
+                    await handleAuthSuccess(user);
+                } else if (!user && !sessionStorage.getItem('mirmer_callback_url')) {
+                    document.getElementById('message').textContent = 'Error: Missing callback URL';
+                    document.getElementById('content').innerHTML = '<div class="error">Please run "mirmer login" from your terminal</div>';
+                } else if (!user && sessionStorage.getItem('mirmer_callback_url')) {
+                    signInBtn.addEventListener('click', signInWithGoogle);
                 }
-                
-                // Check if user is already signed in (from previous redirect)
-                const currentUser = auth.currentUser;
-                console.log('Current user:', currentUser);
-                
-                if (currentUser && sessionStorage.getItem('mirmer_callback_url')) {
-                    // User is signed in and we have a callback URL
-                    await handleAuthSuccess(currentUser);
-                    return;
+            });
+            
+            // Also check redirect result
+            try {
+                const result = await getRedirectResult(auth);
+                if (result && !authHandled) {
+                    authHandled = true;
+                    await handleAuthSuccess(result.user);
                 }
             } catch (error) {
-                console.error('Redirect result error:', error);
-                spinner.style.display = 'none';
-                document.getElementById('content').innerHTML = `<div class="error">Authentication failed: ${error.message}</div><br><button class="button" onclick="location.reload()">Try Again</button>`;
-                return;
-            }
-
-            // Not returning from redirect, check if we have a callback URL
-            if (!callbackUrl && !sessionStorage.getItem('mirmer_callback_url')) {
-                document.getElementById('message').textContent = 'Error: Missing callback URL';
-                document.getElementById('content').innerHTML = '<div class="error">Please run "mirmer login" from your terminal</div>';
-            } else if (callbackUrl) {
-                // Store callback URL before redirect
-                sessionStorage.setItem('mirmer_callback_url', callbackUrl);
-                signInBtn.addEventListener('click', signInWithGoogle);
+                console.error('Authentication error:', error);
+                if (!authHandled) {
+                    spinner.style.display = 'none';
+                    document.getElementById('content').innerHTML = `<div class="error">Authentication failed: ${error.message}</div><br><button class="button" onclick="location.reload()">Try Again</button>`;
+                }
             }
         }
         
@@ -153,7 +179,6 @@
             spinner.style.display = 'block';
             signInBtn.style.display = 'none';
             
-            // Get callback URL from sessionStorage
             callbackUrl = sessionStorage.getItem('mirmer_callback_url');
             
             if (!callbackUrl) {
@@ -168,7 +193,6 @@
             spinner.style.display = 'none';
             document.getElementById('content').innerHTML = '<div class="success">✅ Authentication successful! Redirecting...</div>';
             
-            // Clean up
             sessionStorage.removeItem('mirmer_callback_url');
             
             setTimeout(() => {
@@ -186,9 +210,7 @@
             document.getElementById('message').textContent = 'Redirecting to Google Sign-In...';
             
             try {
-                // Use redirect instead of popup - no popup blockers!
                 await signInWithRedirect(auth, provider);
-                // User will be redirected to Google, then back to this page
             } catch (error) {
                 console.error('Authentication error:', error);
                 spinner.style.display = 'none';
