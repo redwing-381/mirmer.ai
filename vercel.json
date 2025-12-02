@@ -4,6 +4,10 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/auth/cli",
+      "destination": "/cli-auth.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
