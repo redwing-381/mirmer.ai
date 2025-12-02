@@ -67,7 +67,7 @@ export default function PricingSection() {
     },
     {
       name: 'Pro',
-      price: '₹1499',
+      price: '₹150',
       period: '/month',
       description: 'For power users who need more',
       features: [

@@ -339,7 +339,7 @@ export default function SettingsPage() {
                   onClick={() => setShowUpgradeModal(true)}
                   className="w-full px-6 py-3 bg-[#FF6B6B] text-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all font-black text-lg"
                 >
-                  UPGRADE NOW - ₹1499/MONTH
+                  UPGRADE NOW - ₹150/MONTH
                 </button>
               </div>
             )}

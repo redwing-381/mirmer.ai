@@ -183,6 +183,62 @@ async def migrate_subscription_fields(admin_key: str = Header(None, alias="x-adm
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/api/admin/fix-user-subscription")
+async def fix_user_subscription(
+    user_id: str,
+    admin_key: str = Header(None, alias="x-admin-key")
+):
+    """Admin endpoint to manually upgrade a user to Pro tier."""
+    # Simple admin key check (set ADMIN_KEY environment variable)
+    expected_key = os.getenv('ADMIN_KEY')
+    if not expected_key or admin_key != expected_key:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    try:
+        from models import Usage
+        from datetime import datetime
+        
+        db = next(get_db())
+        
+        # Find user
+        usage = db.query(Usage).filter(Usage.user_id == user_id).first()
+        
+        if not usage:
+            raise HTTPException(status_code=404, detail=f"User not found: {user_id}")
+        
+        # Log before state
+        logger.info(f"📊 Before: User {user_id} - Tier: {usage.tier}, Limits: {usage.daily_limit}/{usage.monthly_limit}")
+        
+        # Update to Pro
+        usage.tier = 'pro'
+        usage.daily_limit = 100
+        usage.monthly_limit = 3000
+        usage.subscription_status = 'active'
+        usage.updated_at = datetime.utcnow()
+        
+        db.commit()
+        
+        # Log after state
+        logger.info(f"✅ After: User {user_id} - Tier: {usage.tier}, Limits: {usage.daily_limit}/{usage.monthly_limit}")
+        
+        return {
+            "success": True,
+            "message": "User upgraded to Pro successfully",
+            "user_id": user_id,
+            "tier": usage.tier,
+            "daily_limit": usage.daily_limit,
+            "monthly_limit": usage.monthly_limit
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fixing user subscription: {str(e)}")
+        if db:
+            db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)

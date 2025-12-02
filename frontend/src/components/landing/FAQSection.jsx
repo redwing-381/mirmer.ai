@@ -26,7 +26,7 @@ export default function FAQSection() {
     },
     {
       question: 'What happens if I run out of queries?',
-      answer: 'Free users get 10 queries per day. If you need more, you can upgrade to Pro for 100 queries per day at ₹1499/month. Your query count resets daily, so you can always come back tomorrow!'
+      answer: 'Free users get 10 queries per day. If you need more, you can upgrade to Pro for 100 queries per day at ₹150/month. Your query count resets daily, so you can always come back tomorrow!'
     }
   ]
 
