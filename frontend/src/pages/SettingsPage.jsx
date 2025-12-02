@@ -302,10 +302,10 @@ export default function SettingsPage() {
               
               <div className="space-y-2">
                 <p className="font-bold">
-                  <span className="text-gray-600">Daily Limit:</span> {usageStats?.daily_limit || 10} queries
+                  <span className="text-gray-600">Daily Limit:</span> {usageStats?.daily_limit === 0 || usageStats?.daily_limit ? usageStats.daily_limit : (isPro ? 100 : 10)} queries
                 </p>
                 <p className="font-bold">
-                  <span className="text-gray-600">Monthly Limit:</span> {usageStats?.monthly_limit || 300} queries
+                  <span className="text-gray-600">Monthly Limit:</span> {usageStats?.monthly_limit === 0 || usageStats?.monthly_limit ? usageStats.monthly_limit : (isPro ? 3000 : 300)} queries
                 </p>
                 <p className="font-bold">
                   <span className="text-gray-600">Used Today:</span> {usageStats?.daily_queries_used || 0} / {usageStats?.daily_limit || 10}

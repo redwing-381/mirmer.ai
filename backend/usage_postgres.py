@@ -129,11 +129,13 @@ def get_usage_stats(user_id: str) -> Dict:
                 'tier': usage.tier,
                 'daily_queries_used': usage.daily_used,  # Frontend expects this field name
                 'daily_used': usage.daily_used,  # Keep for backward compatibility
-                'daily_limit': usage.daily_limit if usage.tier == 'free' else 'unlimited',
+                'daily_limit': usage.daily_limit,
                 'monthly_queries_used': usage.monthly_used,  # Frontend expects this field name
                 'monthly_used': usage.monthly_used,  # Keep for backward compatibility
-                'monthly_limit': usage.monthly_limit if usage.tier == 'free' else 'unlimited',
-                'total_queries': usage.total_queries
+                'monthly_limit': usage.monthly_limit,
+                'total_queries': usage.total_queries,
+                'subscription_id': getattr(usage, 'razorpay_subscription_id', None),
+                'subscription_status': getattr(usage, 'subscription_status', None)
             }
             logger.info(f"📊 Usage stats for {user_id}: daily={stats['daily_used']}/{stats['daily_limit']}, monthly={stats['monthly_used']}/{stats['monthly_limit']}")
             return stats
