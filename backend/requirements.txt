@@ -56,3 +56,6 @@ razorpay>=1.4.0
 
 # Email service
 sendgrid>=6.11.0
+
+# Firebase Admin SDK for token verification
+firebase-admin>=6.0.0

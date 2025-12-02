@@ -51,6 +51,10 @@ async def startup_event():
     import os
     from database import init_db, check_connection
     from config import validate_production_config
+    from firebase_auth import initialize_firebase
+    
+    # Initialize Firebase Admin SDK
+    initialize_firebase()
     
     # Validate configuration
     logger.info("=" * 60)
@@ -193,6 +197,7 @@ from fastapi.responses import Response
 from database import get_db
 import json
 from export_service import ExportService, generate_export_filename
+from firebase_auth import extract_user_id
 
 
 @app.post("/api/conversations", response_model=ConversationResponse)
@@ -202,8 +207,11 @@ async def create_conversation(x_user_id: str = Header(...)):
     
     Requirements: 8.4, 8.5
     """
+    from firebase_auth import extract_user_id
+    user_id = extract_user_id(x_user_id)
+    
     try:
-        conversation = storage.create_conversation(user_id=x_user_id)
+        conversation = storage.create_conversation(user_id=user_id)
         return ConversationResponse(
             id=conversation["id"],
             title=conversation["title"],
@@ -221,8 +229,9 @@ async def list_conversations(x_user_id: str = Header(...)):
     
     Requirements: 8.4
     """
+    user_id = extract_user_id(x_user_id)
     try:
-        conversations = storage.list_conversations(user_id=x_user_id)
+        conversations = storage.list_conversations(user_id=user_id)
         return {"conversations": conversations}
     except Exception as e:
         logger.error(f"Error listing conversations: {str(e)}")
@@ -288,31 +297,32 @@ async def send_message_stream(conversation_id: str, request: MessageRequest, x_u
     
     Requirements: 2.3, 2.4, 3.1, 4.3, 6.2, 9.4
     """
+    user_id = extract_user_id(x_user_id)
     
     async def event_generator():
         try:
             # Check rate limits
-            allowed, error_msg = usage.check_rate_limit(x_user_id)
+            allowed, error_msg = usage.check_rate_limit(user_id)
             if not allowed:
                 yield f"data: {json.dumps({'type': 'error', 'message': error_msg})}\n\n"
                 return
             
             # Validate conversation exists and belongs to user
-            conversation = storage.get_conversation(conversation_id, user_id=x_user_id)
+            conversation = storage.get_conversation(conversation_id, user_id=user_id)
             if not conversation:
                 yield f"data: {json.dumps({'type': 'error', 'message': 'Conversation not found'})}\n\n"
                 return
             
             # Add user message to conversation
-            storage.add_user_message(conversation_id, request.content, user_id=x_user_id)
+            storage.add_user_message(conversation_id, request.content, user_id=user_id)
             
             # Increment usage count
-            logger.info(f"📊 Incrementing usage for user: {x_user_id}")
-            increment_success = usage.increment_usage(x_user_id)
+            logger.info(f"📊 Incrementing usage for user: {user_id}")
+            increment_success = usage.increment_usage(user_id)
             if increment_success:
-                logger.info(f"✅ Usage increment successful for user: {x_user_id}")
+                logger.info(f"✅ Usage increment successful for user: {user_id}")
             else:
-                logger.error(f"❌ Usage increment failed for user: {x_user_id}")
+                logger.error(f"❌ Usage increment failed for user: {user_id}")
             
             # Stage 1: Collect individual responses
             yield f"data: {json.dumps({'type': 'stage1_start'})}\n\n"
@@ -384,7 +394,7 @@ async def send_message_stream(conversation_id: str, request: MessageRequest, x_u
                 stage1=stage1_results,
                 stage2=stage2_results,
                 stage3=stage3_result,
-                user_id=x_user_id,
+                user_id=user_id,
                 metadata=metadata
             )
             
@@ -397,7 +407,7 @@ async def send_message_stream(conversation_id: str, request: MessageRequest, x_u
                 title = " ".join(title_words)
                 if len(request.content.split()) > 8:
                     title += "..."
-                storage.update_conversation_title(conversation_id, title, user_id=x_user_id)
+                storage.update_conversation_title(conversation_id, title, user_id=user_id)
             
             # Send completion event
             yield f"data: {json.dumps({'type': 'complete'})}\n\n"
