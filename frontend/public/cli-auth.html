@@ -117,7 +117,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
         // Firebase configuration
         // These values are injected from environment variables during build
@@ -140,6 +140,36 @@
 
         // Main initialization function
         async function init() {
+            // First, check if we're returning from a redirect
+            try {
+                const result = await getRedirectResult(auth);
+                if (result) {
+                    // User just signed in via redirect
+                    const user = result.user;
+                    const token = await user.getIdToken();
+                    
+                    // Get callback URL from sessionStorage
+                    const storedCallback = sessionStorage.getItem('mirmer_callback_url');
+                    sessionStorage.removeItem('mirmer_callback_url');
+                    
+                    document.getElementById('spinner').style.display = 'none';
+                    showSuccess('Authentication successful! Redirecting...');
+                    
+                    // Redirect to callback with token
+                    setTimeout(() => {
+                        window.location.href = `${storedCallback}?token=${token}&email=${encodeURIComponent(user.email)}`;
+                    }, 1000);
+                    return;
+                }
+            } catch (error) {
+                console.error('Redirect result error:', error);
+                document.getElementById('spinner').style.display = 'none';
+                showError(`Authentication failed: ${error.message}`);
+                showRetryButton();
+                return;
+            }
+            
+            // Not returning from redirect, start new sign-in
             if (!callbackUrl) {
                 showError('Missing callback URL parameter');
                 return;
@@ -155,35 +185,19 @@
             const provider = new GoogleAuthProvider();
             
             try {
-                document.getElementById('message').textContent = 'Please sign in with Google...';
+                document.getElementById('message').textContent = 'Redirecting to Google Sign-In...';
                 
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
+                // Store callback URL in sessionStorage so we can retrieve it after redirect
+                sessionStorage.setItem('mirmer_callback_url', callbackUrl);
                 
-                document.getElementById('message').textContent = 'Getting authentication token...';
-                
-                // Get ID token
-                const token = await user.getIdToken();
-                
-                document.getElementById('spinner').style.display = 'none';
-                showSuccess('Authentication successful! Redirecting...');
-                
-                // Redirect to callback with token
-                setTimeout(() => {
-                    window.location.href = `${callbackUrl}?token=${token}&email=${encodeURIComponent(user.email)}`;
-                }, 1000);
+                // Use redirect instead of popup (more reliable, no popup blockers)
+                await signInWithRedirect(auth, provider);
                 
             } catch (error) {
                 console.error('Authentication error:', error);
                 document.getElementById('spinner').style.display = 'none';
-                
-                if (error.code === 'auth/popup-closed-by-user') {
-                    showError('Sign-in cancelled. Please try again.');
-                    showRetryButton();
-                } else {
-                    showError(`Authentication failed: ${error.message}`);
-                    showRetryButton();
-                }
+                showError(`Authentication failed: ${error.message}`);
+                showRetryButton();
             }
         }
 
