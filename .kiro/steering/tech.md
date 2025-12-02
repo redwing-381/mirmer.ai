@@ -28,6 +28,14 @@ inclusion: always
 - **Backend Deployment**: Railway (with PostgreSQL database)
 - **Frontend Deployment**: Vercel
 - **Communication**: Server-Sent Events (SSE) for real-time streaming
+- **CLI Authentication**: Popup-based Firebase Google Sign-In at `/auth/cli`
+
+## Python SDK
+
+- **Package**: `mirmer` - Official Python SDK for Mirmer AI
+- **CLI Tool**: `mirmer` command-line interface
+- **Authentication**: Browser-based Google Sign-In with local callback server
+- **Installation**: `pip install mirmer` or `uv pip install mirmer`
 
 ## Key Libraries
 
@@ -48,6 +56,11 @@ inclusion: always
 - `lucide-react` - Icon library (Search, X, ChevronLeft, ChevronRight, etc.)
 - `tailwindcss` - Utility-first CSS
 - `class-variance-authority` & `clsx` - Component styling utilities
+
+### SDK
+- `httpx` - Async HTTP client
+- `pydantic` - Data validation and models
+- `webbrowser` - Browser-based authentication flow
 
 ## Common Commands
 

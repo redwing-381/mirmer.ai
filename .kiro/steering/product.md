@@ -25,6 +25,8 @@ Mirmer AI is a multi-LLM consultation system that queries multiple AI models in 
 - **Collapsible sidebar** - Toggle sidebar visibility for more screen space
 - **Delete conversations** - Remove unwanted conversations with confirmation dialog
 - **Enterprise contact form** - Automated email notifications for enterprise inquiries
+- **Python SDK** - Official Python SDK for programmatic access with CLI tool
+- **CLI Authentication** - Browser-based Google Sign-In for CLI tool with popup flow
 
 ## Business Model
 

@@ -10,6 +10,7 @@ inclusion: always
 mirmer-ai/
 ├── backend/           # FastAPI backend application
 ├── frontend/          # React frontend application
+├── sdk/               # Python SDK package
 ├── data/              # Local JSON storage (development only)
 ├── .env               # Environment variables (not in git)
 ├── .env.example       # Environment template
@@ -41,10 +42,33 @@ backend/
 └── data/                      # Local JSON storage directory
 ```
 
+## SDK Structure
+
+```
+sdk/
+├── mirmer/
+│   ├── __init__.py            # Package initialization
+│   ├── client.py              # Synchronous client
+│   ├── async_client.py        # Asynchronous client
+│   ├── models.py              # Pydantic data models
+│   ├── auth.py                # Authentication utilities
+│   └── cli.py                 # CLI tool implementation
+├── examples/
+│   ├── basic_usage.py         # Basic SDK usage examples
+│   ├── streaming_example.py   # Streaming response examples
+│   ├── conversation_management.py  # Conversation CRUD examples
+│   └── test_with_backend.py   # Integration test with backend
+├── pyproject.toml             # Package configuration
+├── README.md                  # SDK documentation
+└── PUBLISH_NOW.sh             # Publishing script
+```
+
 ## Frontend Structure
 
 ```
 frontend/
+├── public/
+│   └── cli-auth.html          # CLI authentication page (popup-based)
 ├── src/
 │   ├── main.jsx               # React app entry point
 │   ├── App.jsx                # Main app component with routing
@@ -126,9 +150,20 @@ The backend uses a factory pattern to automatically select storage backend:
 
 ## Data Flow
 
+### Web Application
 1. User sends message via `ChatInterface.jsx`
 2. Frontend calls `/api/conversations/{id}/message/stream` via `api.js`
 3. Backend orchestrates 3-stage council process in `council.py`
 4. Real-time updates streamed back via SSE
 5. Frontend updates UI progressively as each stage completes
 6. Final conversation saved to storage backend (PostgreSQL or JSON)
+
+### CLI/SDK Authentication
+1. User runs `mirmer login` command
+2. CLI opens browser to `/auth/cli?callback=http://localhost:8765/callback`
+3. User clicks "Sign in with Google" button
+4. Firebase popup opens for Google authentication
+5. After sign-in, popup closes and page gets Firebase ID token
+6. Page redirects to `http://localhost:8765/callback?token=...&email=...`
+7. CLI local server receives token and saves to `~/.mirmer/credentials.json`
+8. CLI uses token for subsequent API requests via `x-user-id` header
