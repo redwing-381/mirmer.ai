@@ -92,7 +92,7 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5]" style={{
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-blue-50 to-purple-50" style={{
       backgroundImage: `
         linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px)

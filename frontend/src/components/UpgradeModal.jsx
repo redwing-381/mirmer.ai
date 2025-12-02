@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
-import { X, Check, Loader2 } from 'lucide-react'
+import { X, Check, Loader2, Zap, Target, Bot, Rocket, MessageCircle, Lock } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './ui/Card'
-import { Badge } from './ui/Badge'
 import { auth } from '../firebase'
 
 export default function UpgradeModal({ isOpen, onClose }) {
@@ -47,8 +46,8 @@ export default function UpgradeModal({ isOpen, onClose }) {
       console.log('Razorpay script loaded successfully')
 
       // Create subscription
-      const apiUrl = import.meta.env.VITE_API_URL || '/api'
-      const fullUrl = `${apiUrl}/payments/create-subscription`
+      const apiUrl = import.meta.env.VITE_API_URL || ''
+      const fullUrl = `${apiUrl}/api/payments/create-subscription`
       console.log('Creating subscription at:', fullUrl)
 
       const response = await fetch(fullUrl, {
@@ -112,69 +111,64 @@ export default function UpgradeModal({ isOpen, onClose }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b-4 border-black p-6 flex justify-between items-center">
-          <h2 className="text-2xl font-black">Upgrade to Pro</h2>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 overflow-y-auto backdrop-blur-sm">
+      <div className="bg-white max-w-2xl w-full my-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <div className="bg-teal-400 border-b-4 border-black p-6 flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-black">Upgrade to Pro</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-black/10 border-2 border-black transition-colors"
             disabled={loading}
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 text-black" />
           </button>
         </div>
 
         <div className="p-6">
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border-4 border-red-500 rounded-lg">
+            <div className="mb-4 p-4 bg-red-100 border-4 border-red-500 shadow-[4px_4px_0px_0px_rgba(239,68,68,1)]">
               <p className="text-red-700 font-bold">{error}</p>
             </div>
           )}
 
-          <Card className="ring-4 ring-yellow-400">
-            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-              <Badge variant="warning" className="text-sm px-4 py-1">
-                RECOMMENDED
-              </Badge>
-            </div>
-
-            <CardHeader>
-              <CardTitle>Pro Plan</CardTitle>
-              <CardDescription>For power users who need more</CardDescription>
-              <div className="mt-4">
-                <span className="text-5xl font-black">₹1,499</span>
-                <span className="text-gray-600 font-bold">/month</span>
+          <Card>
+            <CardHeader className="pb-4 bg-yellow-100 border-b-4 border-black -m-6 mb-6 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-2xl">Pro Plan</CardTitle>
+                  <CardDescription className="text-sm font-semibold text-gray-700">Unlock your full potential</CardDescription>
+                </div>
+                <div className="text-right bg-white border-4 border-black px-5 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="text-3xl font-black text-teal-600">₹1,499</div>
+                  <div className="text-xs text-gray-700 font-bold">/month</div>
+                </div>
               </div>
             </CardHeader>
 
             <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-bold text-lg mb-3">What's included:</h3>
-                  <ul className="space-y-3">
-                    {[
-                      '100 queries per day',
-                      '3-stage council process',
-                      '4 AI models (GPT-4, Claude, Gemini, Llama)',
-                      'Priority processing',
-                      'Extended history (90 days)',
-                      'Email support',
-                      'Cancel anytime'
-                    ].map((feature, idx) => (
-                      <li key={idx} className="flex items-start">
-                        <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              <ul className="space-y-3">
+                {[
+                  { text: '100 queries per day', Icon: Zap },
+                  { text: '3-stage council process', Icon: Target },
+                  { text: '4 AI models working together', Icon: Bot },
+                  { text: 'Priority processing', Icon: Rocket },
+                  { text: 'Email support', Icon: MessageCircle }
+                ].map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-teal-400 border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                      <feature.Icon className="w-5 h-5 text-white" strokeWidth={2.5} />
+                    </div>
+                    <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" strokeWidth={3} />
+                    <span className="text-gray-800 font-semibold">{feature.text}</span>
+                  </li>
+                ))}
+              </ul>
 
-                <div className="bg-blue-50 border-4 border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-gray-700">
-                    <strong>Secure payment powered by Razorpay.</strong> Your payment information is encrypted and never stored on our servers. Supports UPI, Cards, NetBanking, and Wallets.
-                  </p>
-                </div>
+              <div className="bg-blue-100 border-4 border-blue-500 p-4 mt-6 flex items-start gap-3 shadow-[4px_4px_0px_0px_rgba(59,130,246,1)]">
+                <Lock className="w-5 h-5 text-blue-700 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <p className="text-sm text-gray-800 font-semibold">
+                  <span className="font-bold">Secure payment by Razorpay.</span> Supports UPI, Cards, NetBanking & Wallets.
+                </p>
               </div>
             </CardContent>
 
@@ -182,7 +176,7 @@ export default function UpgradeModal({ isOpen, onClose }) {
               <button
                 onClick={handleUpgrade}
                 disabled={loading}
-                className="w-full px-8 py-4 bg-[#FF6B6B] text-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all font-black text-lg"
+                className="w-full px-8 py-4 bg-teal-500 hover:bg-teal-600 text-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none active:shadow-none disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 transition-all duration-150 font-bold text-lg"
               >
                 {loading ? (
                   <span className="flex items-center justify-center">
@@ -190,14 +184,11 @@ export default function UpgradeModal({ isOpen, onClose }) {
                     Processing...
                   </span>
                 ) : (
-                  'Upgrade to Pro - ₹1,499/month'
+                  'Upgrade to Pro Now'
                 )}
               </button>
-            </CardFooter>          </Card>
-
-          <div className="mt-6 text-center text-sm text-gray-600">
-            <p>Questions? Contact us at support@mirmer.ai</p>
-          </div>
+            </CardFooter>
+          </Card>
         </div>
       </div>
     </div>
