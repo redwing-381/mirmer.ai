@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node build-cli-auth.js",
+    "build:cli-auth": "node build-cli-auth.js",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui"
@@ -28,6 +29,7 @@
     "@vitejs/plugin-react": "^4.3.1",
     "@vitest/ui": "^4.0.14",
     "autoprefixer": "^10.4.20",
+    "dotenv": "^17.2.3",
     "fast-check": "^4.3.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.1",
