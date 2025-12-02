@@ -947,6 +947,50 @@ async def submit_enterprise_inquiry(inquiry: EnterpriseInquiry):
         raise HTTPException(status_code=500, detail="Failed to process inquiry")
 
 
+class ContactRequest(BaseModel):
+    name: str
+    email: str
+    subject: str
+    message: str
+
+
+@app.post("/api/contact")
+async def submit_contact_request(contact: ContactRequest):
+    """
+    Handle general contact form submissions.
+    Sends confirmation email to submitter and notification to admin.
+    """
+    try:
+        from email_service import email_service
+        
+        logger.info(f"Received contact request from {contact.email}")
+        
+        # Send notification to admin
+        admin_notified = email_service.send_contact_notification(
+            name=contact.name,
+            email=contact.email,
+            subject=contact.subject,
+            message=contact.message
+        )
+        
+        # Send confirmation to user
+        confirmation_sent = email_service.send_contact_confirmation(
+            email=contact.email,
+            name=contact.name
+        )
+        
+        logger.info(f"Contact request processed - Confirmation: {confirmation_sent}, Admin notified: {admin_notified}")
+        
+        return {
+            "status": "success",
+            "message": "Thank you for contacting us. We'll respond within 24 hours!"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error processing contact request: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to send message")
+
+
 class SubscriptionSupportRequest(BaseModel):
     name: str
     email: str

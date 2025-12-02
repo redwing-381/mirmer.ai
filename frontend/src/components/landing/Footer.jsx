@@ -1,5 +1,9 @@
+import { useState } from 'react';
+import ContactModal from '../ContactModal';
+
 export default function Footer() {
-  const currentYear = new Date().getFullYear()
+  const currentYear = new Date().getFullYear();
+  const [showContactModal, setShowContactModal] = useState(false);
 
   return (
     <footer className="bg-black text-white py-16 border-t-4 border-black">
@@ -27,38 +31,46 @@ export default function Footer() {
                   Pricing
                 </a>
               </li>
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <h4 className="font-black mb-4 text-lg">COMPANY</h4>
-            <ul className="space-y-3">
               <li>
-                <a href="#" className="text-gray-400 hover:text-[#4ECDC4] transition-colors font-bold">
-                  About
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-400 hover:text-[#FFE66D] transition-colors font-bold">
-                  Blog
+                <a href="/docs" className="text-gray-400 hover:text-[#4ECDC4] transition-colors font-bold">
+                  Documentation
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Legal */}
+          {/* Developers */}
           <div>
-            <h4 className="font-black mb-4 text-lg">LEGAL</h4>
+            <h4 className="font-black mb-4 text-lg">DEVELOPERS</h4>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="text-gray-400 hover:text-[#4ECDC4] transition-colors font-bold">
-                  Privacy
+                <a href="/docs" className="text-gray-400 hover:text-[#4ECDC4] transition-colors font-bold">
+                  SDK Docs
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-[#FFE66D] transition-colors font-bold">
-                  Terms
+                <a href="https://pypi.org/project/mirmer-ai/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#FFE66D] transition-colors font-bold">
+                  PyPI Package
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Support */}
+          <div>
+            <h4 className="font-black mb-4 text-lg">SUPPORT</h4>
+            <ul className="space-y-3">
+              <li>
+                <button 
+                  onClick={() => setShowContactModal(true)}
+                  className="text-gray-400 hover:text-[#4ECDC4] transition-colors font-bold text-left"
+                >
+                  Contact Us
+                </button>
+              </li>
+              <li>
+                <a href="#faq" className="text-gray-400 hover:text-[#FFE66D] transition-colors font-bold">
+                  FAQ
                 </a>
               </li>
             </ul>
@@ -70,6 +82,9 @@ export default function Footer() {
           <p className="text-gray-400 font-black">&copy; {currentYear} MIRMER AI. ALL RIGHTS RESERVED.</p>
         </div>
       </div>
+      
+      {/* Contact Modal */}
+      <ContactModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} />
     </footer>
   )
 }

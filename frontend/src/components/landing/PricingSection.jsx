@@ -99,8 +99,14 @@ export default function PricingSection() {
   ]
 
   return (
-    <section id="pricing" className="py-20 bg-[#f5f5f5] border-b-4 border-black">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="pricing" className="py-20 bg-[#f5f5f5] border-b-4 border-black relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-16 left-8 w-32 h-32 bg-teal-400 border-4 border-black opacity-10 -rotate-12 pointer-events-none"></div>
+      <div className="absolute top-32 right-12 w-24 h-24 bg-yellow-300 border-4 border-black opacity-10 rotate-45 pointer-events-none"></div>
+      <div className="absolute bottom-16 left-1/3 w-20 h-20 bg-red-300 border-4 border-black opacity-10 rotate-12 pointer-events-none"></div>
+      <div className="absolute bottom-24 right-1/4 w-28 h-28 bg-purple-300 border-4 border-black opacity-10 -rotate-6 pointer-events-none"></div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-5xl md:text-6xl font-black text-black mb-6">

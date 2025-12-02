@@ -117,7 +117,13 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center" style={{
+        backgroundImage: `
+          linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px)
+        `,
+        backgroundSize: '20px 20px'
+      }}>
         <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-black"></div>
       </div>
     )
@@ -149,6 +155,7 @@ export default function SettingsPage() {
             >
               <ArrowLeft className="w-6 h-6" />
             </button>
+            <img src="/favicon.png" alt="Mirmer AI Logo" className="w-10 h-10 border-2 border-black" />
             <h1 className="text-4xl font-black">SETTINGS</h1>
           </div>
         </div>

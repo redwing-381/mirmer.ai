@@ -35,8 +35,13 @@ export default function FAQSection() {
   }
 
   return (
-    <section className="py-20 bg-white border-b-4 border-black">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-20 bg-white border-b-4 border-black relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-12 right-16 w-28 h-28 border-4 border-black bg-teal-400 opacity-10 rotate-45 pointer-events-none"></div>
+      <div className="absolute bottom-16 left-12 w-24 h-24 border-4 border-black bg-yellow-300 opacity-10 -rotate-12 pointer-events-none"></div>
+      <div className="absolute top-1/3 left-8 w-20 h-20 border-4 border-black bg-purple-300 opacity-10 rotate-12 pointer-events-none"></div>
+      
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-5xl md:text-6xl font-black text-black mb-6">

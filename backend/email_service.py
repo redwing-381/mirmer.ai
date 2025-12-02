@@ -486,3 +486,124 @@ class EmailService:
 
 # Global email service instance
 email_service = EmailService()
+
+    def send_contact_notification(
+        self,
+        name: str,
+        email: str,
+        subject: str,
+        message: str
+    ) -> bool:
+        """
+        Send notification to admin about general contact request.
+        
+        Args:
+            name: Sender's name
+            email: Sender's email
+            subject: Contact subject
+            message: Contact message
+            
+        Returns:
+            True if email was sent successfully
+        """
+        email_subject = f"Contact Form: {subject} - {name}"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background-color: #4ECDC4; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 20px; background-color: #f9f9f9; }}
+                .info-box {{ background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #4ECDC4; }}
+                .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #666; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>📧 New Contact Form Submission</h1>
+                </div>
+                <div class="content">
+                    <h2>Contact Information</h2>
+                    <div class="info-box">
+                        <p><strong>Name:</strong> {name}</p>
+                        <p><strong>Email:</strong> <a href="mailto:{email}">{email}</a></p>
+                        <p><strong>Subject:</strong> {subject}</p>
+                    </div>
+                    
+                    <h2>Message</h2>
+                    <div class="info-box">
+                        <p>{message}</p>
+                    </div>
+                    
+                    <p><strong>Action Required:</strong> Please respond to this inquiry within 24 hours.</p>
+                </div>
+                <div class="footer">
+                    <p>&copy; 2024 Mirmer AI Admin Notification</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return self._send_email(ADMIN_EMAIL, email_subject, html_content)
+    
+    def send_contact_confirmation(self, email: str, name: str) -> bool:
+        """
+        Send confirmation email to contact form submitter.
+        
+        Args:
+            email: Submitter's email address
+            name: Submitter's name
+            
+        Returns:
+            True if email was sent successfully
+        """
+        subject = "Thank you for contacting Mirmer AI"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background-color: #4ECDC4; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 20px; background-color: #f9f9f9; }}
+                .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #666; }}
+                .button {{ display: inline-block; padding: 12px 24px; background-color: #4ECDC4; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Mirmer AI</h1>
+                </div>
+                <div class="content">
+                    <h2>Thank you for reaching out!</h2>
+                    <p>Hi {name},</p>
+                    <p>We've received your message and our team will review it shortly.</p>
+                    <p>We typically respond within 24 hours during business days. If your inquiry is urgent, please don't hesitate to follow up.</p>
+                    <p>In the meantime, feel free to explore our platform:</p>
+                    <ul>
+                        <li><a href="https://mirmer.ai">Try Mirmer AI</a></li>
+                        <li><a href="https://mirmer.ai/docs">Read our documentation</a></li>
+                        <li><a href="https://mirmer.ai#faq">Check our FAQ</a></li>
+                    </ul>
+                    <a href="https://mirmer.ai" class="button">Visit Mirmer AI</a>
+                    <p>Best regards,<br>The Mirmer AI Team</p>
+                </div>
+                <div class="footer">
+                    <p>&copy; 2024 Mirmer AI. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return self._send_email(email, subject, html_content)

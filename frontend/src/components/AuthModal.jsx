@@ -39,8 +39,11 @@ export default function AuthModal({ isOpen, onClose }) {
 
         <Card className="bg-white">
           <CardHeader>
-            <CardTitle className="text-3xl">GET STARTED</CardTitle>
-            <CardDescription className="font-bold text-base">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <img src="/favicon.png" alt="Mirmer AI Logo" className="w-12 h-12 border-2 border-black" />
+            </div>
+            <CardTitle className="text-3xl text-center">GET STARTED</CardTitle>
+            <CardDescription className="font-bold text-base text-center">
               Sign in to start getting better AI answers
             </CardDescription>
           </CardHeader>
@@ -87,19 +90,6 @@ export default function AuthModal({ isOpen, onClose }) {
                 </>
               )}
             </Button>
-
-            {/* Divider */}
-            <div className="my-6 flex items-center">
-              <div className="flex-1 border-t-4 border-black"></div>
-              <span className="px-4 font-black text-sm">OR</span>
-              <div className="flex-1 border-t-4 border-black"></div>
-            </div>
-
-            {/* Email/Password placeholder */}
-            <div className="p-6 bg-[#f5f5f5] border-4 border-black text-center">
-              <p className="font-black text-sm mb-2">EMAIL SIGN IN</p>
-              <p className="font-bold text-xs text-gray-600">Coming Soon</p>
-            </div>
           </CardContent>
 
           <CardFooter className="flex-col gap-4">

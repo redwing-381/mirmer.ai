@@ -265,7 +265,13 @@ function AppPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center" style={{
+        backgroundImage: `
+          linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px)
+        `,
+        backgroundSize: '20px 20px'
+      }}>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     )
@@ -273,7 +279,13 @@ function AppPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center" style={{
+        backgroundImage: `
+          linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px)
+        `,
+        backgroundSize: '20px 20px'
+      }}>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     )
@@ -315,9 +327,12 @@ function AppPage() {
       <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : 'ml-80'}`}>
         <div className="bg-white border-b-4 border-black p-6 flex-shrink-0">
           <div className="flex items-center justify-between">
-            <h1 className="text-4xl font-black">
-              MIRMER AI
-            </h1>
+            <div className="flex items-center gap-3">
+              <img src="/favicon.png" alt="Mirmer AI Logo" className="w-10 h-10 border-2 border-black" />
+              <h1 className="text-4xl font-black">
+                MIRMER AI
+              </h1>
+            </div>
             
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3 bg-[#4ECDC4] border-4 border-black px-4 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">

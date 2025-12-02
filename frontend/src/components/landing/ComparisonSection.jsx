@@ -18,8 +18,13 @@ export default function ComparisonSection() {
   ]
 
   return (
-    <section className="py-20 bg-[#f5f5f5] border-b-4 border-black">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-20 bg-[#f5f5f5] border-b-4 border-black relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-10 right-20 w-28 h-28 border-4 border-black bg-red-300 opacity-10 rotate-12 pointer-events-none"></div>
+      <div className="absolute bottom-10 left-10 w-36 h-36 border-4 border-black bg-blue-300 opacity-10 -rotate-12 pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 w-16 h-16 border-4 border-black bg-green-300 opacity-10 rotate-45 pointer-events-none"></div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-5xl md:text-6xl font-black text-black mb-6">

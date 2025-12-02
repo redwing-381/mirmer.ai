@@ -36,8 +36,13 @@ export default function UseCasesSection() {
   ]
 
   return (
-    <section className="py-20 bg-white border-b-4 border-black">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-20 bg-white border-b-4 border-black relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-20 left-5 w-24 h-24 bg-teal-400 border-4 border-black opacity-10 rotate-12 pointer-events-none"></div>
+      <div className="absolute top-40 right-10 w-32 h-32 bg-yellow-300 border-4 border-black opacity-10 -rotate-6 pointer-events-none"></div>
+      <div className="absolute bottom-20 left-1/4 w-20 h-20 bg-purple-300 border-4 border-black opacity-10 rotate-45 pointer-events-none"></div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-5xl md:text-6xl font-black text-black mb-6">

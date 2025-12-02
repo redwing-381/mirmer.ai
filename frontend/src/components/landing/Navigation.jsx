@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '../ui/Button'
 import AuthModal from '../AuthModal'
 
@@ -7,6 +7,8 @@ export default function Navigation({ user }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+  const isDocsPage = location.pathname === '/docs'
 
   const handleSignIn = () => {
     setShowAuthModal(true)
@@ -25,7 +27,8 @@ export default function Navigation({ user }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex items-center gap-3">
+            <img src="/favicon.png" alt="Mirmer AI Logo" className="w-10 h-10 border-2 border-black" />
             <h1 className="text-3xl font-black">MIRMER AI</h1>
           </div>
 
@@ -42,6 +45,16 @@ export default function Navigation({ user }) {
               className="text-black font-black hover:text-[#FFE66D] transition-colors text-lg"
             >
               PRICING
+            </button>
+            <button
+              onClick={() => navigate('/docs')}
+              className={`text-black font-black transition-colors text-lg ${
+                isDocsPage 
+                  ? 'text-[#4ECDC4] underline decoration-4' 
+                  : 'hover:text-[#4ECDC4]'
+              }`}
+            >
+              DOCS
             </button>
           </div>
 
@@ -110,6 +123,19 @@ export default function Navigation({ user }) {
               className="block w-full text-left px-4 py-3 text-black font-black hover:bg-[#FFE66D] border-2 border-black transition-all"
             >
               PRICING
+            </button>
+            <button
+              onClick={() => {
+                navigate('/docs')
+                setMobileMenuOpen(false)
+              }}
+              className={`block w-full text-left px-4 py-3 text-black font-black border-2 border-black transition-all ${
+                isDocsPage 
+                  ? 'bg-[#4ECDC4]' 
+                  : 'hover:bg-[#4ECDC4]'
+              }`}
+            >
+              DOCS
             </button>
             <div className="pt-4 space-y-2">
               {user ? (

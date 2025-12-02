@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './pages/LandingPage'
 import AppPage from './pages/AppPage'
 import SettingsPage from './pages/SettingsPage'
+import DocsPage from './pages/DocsPage'
 import { useEffect, useState } from 'react'
 import { auth } from './firebase'
 
@@ -30,6 +31,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/docs" element={<DocsPage />} />
         <Route 
           path="/app" 
           element={user ? <AppPage /> : <Navigate to="/" replace />} 
