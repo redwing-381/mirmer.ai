@@ -104,42 +104,33 @@
         init();
 
         async function init() {
+            const spinner = document.getElementById('spinner');
+            const signInBtn = document.getElementById('signInBtn');
+            
             // First check if we're returning from a redirect
             try {
+                console.log('Checking redirect result...');
                 const result = await getRedirectResult(auth);
+                console.log('Redirect result:', result);
+                
                 if (result) {
                     // User just signed in via redirect
-                    const user = result.user;
-                    const spinner = document.getElementById('spinner');
-                    spinner.style.display = 'block';
-                    document.getElementById('signInBtn').style.display = 'none';
-                    
-                    // Get callback URL from sessionStorage
-                    callbackUrl = sessionStorage.getItem('mirmer_callback_url');
-                    
-                    if (!callbackUrl) {
-                        spinner.style.display = 'none';
-                        document.getElementById('content').innerHTML = '<div class="error">Session expired. Please run "mirmer login" again.</div>';
-                        return;
-                    }
-                    
-                    document.getElementById('message').textContent = 'Getting authentication token...';
-                    const token = await user.getIdToken();
-                    
-                    spinner.style.display = 'none';
-                    document.getElementById('content').innerHTML = '<div class="success">✅ Authentication successful! Redirecting...</div>';
-                    
-                    // Clean up
-                    sessionStorage.removeItem('mirmer_callback_url');
-                    
-                    setTimeout(() => {
-                        window.location.href = `${callbackUrl}?token=${token}&email=${encodeURIComponent(user.email)}`;
-                    }, 1000);
+                    await handleAuthSuccess(result.user);
+                    return;
+                }
+                
+                // Check if user is already signed in (from previous redirect)
+                const currentUser = auth.currentUser;
+                console.log('Current user:', currentUser);
+                
+                if (currentUser && sessionStorage.getItem('mirmer_callback_url')) {
+                    // User is signed in and we have a callback URL
+                    await handleAuthSuccess(currentUser);
                     return;
                 }
             } catch (error) {
                 console.error('Redirect result error:', error);
-                document.getElementById('spinner').style.display = 'none';
+                spinner.style.display = 'none';
                 document.getElementById('content').innerHTML = `<div class="error">Authentication failed: ${error.message}</div><br><button class="button" onclick="location.reload()">Try Again</button>`;
                 return;
             }
@@ -151,8 +142,38 @@
             } else if (callbackUrl) {
                 // Store callback URL before redirect
                 sessionStorage.setItem('mirmer_callback_url', callbackUrl);
-                document.getElementById('signInBtn').addEventListener('click', signInWithGoogle);
+                signInBtn.addEventListener('click', signInWithGoogle);
             }
+        }
+        
+        async function handleAuthSuccess(user) {
+            const spinner = document.getElementById('spinner');
+            const signInBtn = document.getElementById('signInBtn');
+            
+            spinner.style.display = 'block';
+            signInBtn.style.display = 'none';
+            
+            // Get callback URL from sessionStorage
+            callbackUrl = sessionStorage.getItem('mirmer_callback_url');
+            
+            if (!callbackUrl) {
+                spinner.style.display = 'none';
+                document.getElementById('content').innerHTML = '<div class="error">Session expired. Please run "mirmer login" again.</div>';
+                return;
+            }
+            
+            document.getElementById('message').textContent = 'Getting authentication token...';
+            const token = await user.getIdToken();
+            
+            spinner.style.display = 'none';
+            document.getElementById('content').innerHTML = '<div class="success">✅ Authentication successful! Redirecting...</div>';
+            
+            // Clean up
+            sessionStorage.removeItem('mirmer_callback_url');
+            
+            setTimeout(() => {
+                window.location.href = `${callbackUrl}?token=${token}&email=${encodeURIComponent(user.email)}`;
+            }, 1000);
         }
 
         async function signInWithGoogle() {
