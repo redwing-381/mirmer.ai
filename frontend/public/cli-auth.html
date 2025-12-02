@@ -182,13 +182,11 @@
             const spinner = document.getElementById('spinner');
             const signInBtn = document.getElementById('signInBtn');
             
-            console.log('handleAuthSuccess called with user:', user);
             spinner.style.display = 'block';
             signInBtn.style.display = 'none';
             
             // Get callback URL from sessionStorage
             callbackUrl = sessionStorage.getItem('mirmer_callback_url');
-            console.log('Callback URL from sessionStorage:', callbackUrl);
             
             if (!callbackUrl) {
                 spinner.style.display = 'none';
@@ -198,20 +196,15 @@
             
             document.getElementById('message').textContent = 'Getting authentication token...';
             const token = await user.getIdToken();
-            console.log('Got token:', token ? 'yes' : 'no');
             
             spinner.style.display = 'none';
             document.getElementById('content').innerHTML = '<div class="success">✅ Authentication successful! Redirecting...</div>';
-            
-            const redirectUrl = `${callbackUrl}?token=${token}&email=${encodeURIComponent(user.email)}`;
-            console.log('Redirecting to:', redirectUrl);
             
             // Clean up
             sessionStorage.removeItem('mirmer_callback_url');
             
             setTimeout(() => {
-                console.log('Executing redirect now...');
-                window.location.href = redirectUrl;
+                window.location.href = `${callbackUrl}?token=${token}&email=${encodeURIComponent(user.email)}`;
             }, 1000);
         }
 
