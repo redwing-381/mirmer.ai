@@ -116,7 +116,7 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAuth, signInWithRedirect, getRedirectResult, onAuthStateChanged, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyC3UJ_Mh36gETyHrBCNHSCO9vwhzmA0rpk",
@@ -131,6 +131,7 @@
         const auth = getAuth(app);
         const urlParams = new URLSearchParams(window.location.search);
         let callbackUrl = urlParams.get('callback');
+        let authHandled = false;
 
         // Initialize the page
         init();
@@ -139,42 +140,46 @@
             const spinner = document.getElementById('spinner');
             const signInBtn = document.getElementById('signInBtn');
             
-            // First check if we're returning from a redirect
+            // Check if we have a callback URL
+            if (callbackUrl) {
+                sessionStorage.setItem('mirmer_callback_url', callbackUrl);
+            }
+            
+            // Set up auth state listener - this is more reliable than getRedirectResult
+            onAuthStateChanged(auth, async (user) => {
+                console.log('Auth state changed, user:', user);
+                console.log('authHandled:', authHandled);
+                console.log('sessionStorage callback:', sessionStorage.getItem('mirmer_callback_url'));
+                
+                if (user && !authHandled && sessionStorage.getItem('mirmer_callback_url')) {
+                    authHandled = true;
+                    await handleAuthSuccess(user);
+                } else if (!user && !sessionStorage.getItem('mirmer_callback_url')) {
+                    // No user and no callback URL
+                    document.getElementById('message').textContent = 'Error: Missing callback URL';
+                    document.getElementById('content').innerHTML = '<div class="error">Please run "mirmer login" from your terminal</div>';
+                } else if (!user && sessionStorage.getItem('mirmer_callback_url')) {
+                    // No user but we have callback URL - show sign in button
+                    signInBtn.addEventListener('click', signInWithGoogle);
+                }
+            });
+            
+            // Also check redirect result for immediate feedback
             try {
                 console.log('Checking redirect result...');
                 const result = await getRedirectResult(auth);
                 console.log('Redirect result:', result);
                 
-                if (result) {
-                    // User just signed in via redirect
+                if (result && !authHandled) {
+                    authHandled = true;
                     await handleAuthSuccess(result.user);
-                    return;
-                }
-                
-                // Check if user is already signed in (from previous redirect)
-                const currentUser = auth.currentUser;
-                console.log('Current user:', currentUser);
-                
-                if (currentUser && sessionStorage.getItem('mirmer_callback_url')) {
-                    // User is signed in and we have a callback URL
-                    await handleAuthSuccess(currentUser);
-                    return;
                 }
             } catch (error) {
                 console.error('Redirect result error:', error);
-                spinner.style.display = 'none';
-                document.getElementById('content').innerHTML = `<div class="error">Authentication failed: ${error.message}</div><br><button class="button" onclick="location.reload()">Try Again</button>`;
-                return;
-            }
-
-            // Not returning from redirect, check if we have a callback URL
-            if (!callbackUrl && !sessionStorage.getItem('mirmer_callback_url')) {
-                document.getElementById('message').textContent = 'Error: Missing callback URL';
-                document.getElementById('content').innerHTML = '<div class="error">Please run "mirmer login" from your terminal</div>';
-            } else if (callbackUrl) {
-                // Store callback URL before redirect
-                sessionStorage.setItem('mirmer_callback_url', callbackUrl);
-                signInBtn.addEventListener('click', signInWithGoogle);
+                if (!authHandled) {
+                    spinner.style.display = 'none';
+                    document.getElementById('content').innerHTML = `<div class="error">Authentication failed: ${error.message}</div><br><button class="button" onclick="location.reload()">Try Again</button>`;
+                }
             }
         }
         
