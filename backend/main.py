@@ -665,45 +665,179 @@ async def get_subscription(x_user_id: str = Header(...)):
         return {"tier": "free", "status": None}
 
 
+@app.get("/api/payments/verify-subscription")
+async def verify_subscription_status(x_user_id: str = Header(...)):
+    """
+    Verify subscription status with Razorpay and sync with local database.
+    
+    This endpoint fetches the subscription from Razorpay API and compares it with
+    the local database. If there's a mismatch, it updates the local database.
+    
+    Requirements: 4.1, 4.2, 4.3, 4.4, 4.5
+    """
+    try:
+        db = next(get_db())
+        result = PaymentService.verify_and_sync_subscription(x_user_id, db)
+        
+        return result
+        
+    except RuntimeError as e:
+        # Database not configured
+        if "Database not configured" in str(e):
+            return {
+                "success": True,
+                "synced": False,
+                "tier": "free",
+                "status": None,
+                "message": "Database not configured"
+            }
+        raise
+        
+    except Exception as e:
+        logger.error(f"Error verifying subscription: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to verify subscription")
+
+
 @app.post("/api/webhooks/razorpay")
 async def razorpay_webhook(request: Request):
     """
-    Handle Razorpay webhook events.
+    Handle Razorpay webhook events with comprehensive logging and error handling.
     """
+    db = None
     try:
+        # Get raw payload and signature
         payload = await request.body()
         sig_header = request.headers.get('x-razorpay-signature')
         
+        logger.info("=" * 60)
+        logger.info("📥 Razorpay webhook received")
+        logger.info(f"Signature header present: {bool(sig_header)}")
+        logger.info(f"Payload size: {len(payload)} bytes")
+        
         # Verify webhook signature
-        if not PaymentService.verify_webhook_signature(payload, sig_header):
+        signature_valid = PaymentService.verify_webhook_signature(payload, sig_header)
+        logger.info(f"Signature verification result: {'✓ VALID' if signature_valid else '✗ INVALID'}")
+        
+        if not signature_valid:
+            logger.error("❌ Webhook signature verification failed")
+            logger.error(f"Request IP: {request.client.host if request.client else 'unknown'}")
+            logger.error(f"Headers: {dict(request.headers)}")
             raise HTTPException(status_code=400, detail="Invalid signature")
         
         # Parse payload
         event = json.loads(payload.decode('utf-8'))
         event_type = event.get('event')
         
+        logger.info(f"Event type: {event_type}")
+        logger.info(f"Event payload: {json.dumps(event, indent=2)}")
+        
+        # Extract user_id with fallback logic
+        subscription_entity = event.get('payload', {}).get('subscription', {}).get('entity', {})
+        notes = subscription_entity.get('notes', {})
+        user_id = notes.get('user_id')
+        subscription_id = subscription_entity.get('id')
+        
+        logger.info(f"Extracted user_id from notes: {user_id}")
+        logger.info(f"Extracted subscription_id: {subscription_id}")
+        
+        # Get database session
         db = next(get_db())
         
-        # Handle different event types
-        if event_type == 'subscription.activated':
-            PaymentService.handle_payment_authorized(event, db)
-        elif event_type == 'subscription.charged':
-            PaymentService.handle_payment_authorized(event, db)
-        elif event_type == 'subscription.updated':
-            PaymentService.handle_subscription_updated(event, db)
-        elif event_type == 'subscription.cancelled':
-            PaymentService.handle_subscription_cancelled(event, db)
-        elif event_type == 'subscription.completed':
-            PaymentService.handle_subscription_cancelled(event, db)
-        elif event_type == 'subscription.halted':
-            PaymentService.handle_subscription_cancelled(event, db)
+        # If user_id not in notes, try to find by subscription_id
+        if not user_id and subscription_id:
+            logger.warning("⚠️  user_id not found in webhook notes, attempting fallback lookup by subscription_id")
+            from models import Usage
+            usage = db.query(Usage).filter(Usage.razorpay_subscription_id == subscription_id).first()
+            if usage:
+                user_id = usage.user_id
+                logger.info(f"✓ Found user_id via subscription_id lookup: {user_id}")
+            else:
+                logger.error(f"❌ Could not find user with subscription_id: {subscription_id}")
         
-        return {"status": "success"}
+        if not user_id:
+            logger.error("❌ Unable to extract user_id from webhook payload")
+            logger.error(f"Event: {event_type}, Subscription ID: {subscription_id}")
+            raise HTTPException(status_code=400, detail="Missing user_id in webhook payload")
+        
+        # Log before state
+        from models import Usage
+        usage_before = db.query(Usage).filter(Usage.user_id == user_id).first()
+        if usage_before:
+            logger.info(f"📊 Before state - User: {user_id}, Tier: {usage_before.tier}, "
+                       f"Status: {usage_before.subscription_status}, "
+                       f"Limits: {usage_before.daily_limit}/{usage_before.monthly_limit}")
+        else:
+            logger.info(f"📊 Before state - User {user_id} not found in database (will be created)")
+        
+        # Handle different event types with transaction management
+        success = False
+        try:
+            if event_type == 'subscription.activated':
+                logger.info(f"🔄 Processing subscription.activated for user {user_id}")
+                success = PaymentService.handle_payment_authorized(event, db)
+            elif event_type == 'subscription.charged':
+                logger.info(f"🔄 Processing subscription.charged for user {user_id}")
+                success = PaymentService.handle_payment_authorized(event, db)
+            elif event_type == 'subscription.updated':
+                logger.info(f"🔄 Processing subscription.updated for user {user_id}")
+                success = PaymentService.handle_subscription_updated(event, db)
+            elif event_type == 'subscription.cancelled':
+                logger.info(f"🔄 Processing subscription.cancelled for user {user_id}")
+                success = PaymentService.handle_subscription_cancelled(event, db)
+            elif event_type == 'subscription.completed':
+                logger.info(f"🔄 Processing subscription.completed for user {user_id}")
+                success = PaymentService.handle_subscription_cancelled(event, db)
+            elif event_type == 'subscription.halted':
+                logger.info(f"🔄 Processing subscription.halted for user {user_id}")
+                success = PaymentService.handle_subscription_cancelled(event, db)
+            else:
+                logger.warning(f"⚠️  Unhandled event type: {event_type}")
+                return {"status": "ignored", "event_type": event_type}
+            
+            if not success:
+                logger.error(f"❌ Handler returned False for event {event_type}")
+                db.rollback()
+                raise HTTPException(status_code=500, detail="Handler failed to process event")
+            
+            # Log after state
+            usage_after = db.query(Usage).filter(Usage.user_id == user_id).first()
+            if usage_after:
+                logger.info(f"📊 After state - User: {user_id}, Tier: {usage_after.tier}, "
+                           f"Status: {usage_after.subscription_status}, "
+                           f"Limits: {usage_after.daily_limit}/{usage_after.monthly_limit}")
+                logger.info(f"✅ Subscription update successful for user {user_id}")
+            else:
+                logger.error(f"❌ User {user_id} not found after update")
+            
+            logger.info("=" * 60)
+            return {"status": "success", "event_type": event_type, "user_id": user_id}
+            
+        except Exception as handler_error:
+            logger.error(f"❌ Error in event handler: {str(handler_error)}")
+            logger.error(f"Event type: {event_type}, User: {user_id}")
+            if db:
+                db.rollback()
+                logger.info("🔄 Database transaction rolled back")
+            raise
+            
     except HTTPException:
         raise
+    except json.JSONDecodeError as e:
+        logger.error(f"❌ Failed to parse webhook payload as JSON: {str(e)}")
+        logger.error(f"Payload: {payload.decode('utf-8', errors='replace')[:500]}")
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
     except Exception as e:
-        logger.error(f"Error handling webhook: {str(e)}")
+        logger.error(f"❌ Unexpected error handling webhook: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        if db:
+            db.rollback()
+            logger.info("🔄 Database transaction rolled back")
         raise HTTPException(status_code=500, detail="Webhook handler failed")
+    finally:
+        if db:
+            db.close()
 
 
 # Enterprise contact endpoint

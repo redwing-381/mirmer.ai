@@ -4,7 +4,7 @@ import { auth, logout } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { api } from '../api'
 import UpgradeModal from '../components/UpgradeModal'
-import { ArrowLeft, BarChart3, CreditCard, User } from 'lucide-react'
+import { ArrowLeft, BarChart3, CreditCard, User, RefreshCw } from 'lucide-react'
 
 export default function SettingsPage() {
   const navigate = useNavigate()
@@ -13,6 +13,8 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [usageStats, setUsageStats] = useState(null)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [verifying, setVerifying] = useState(false)
+  const [verificationMessage, setVerificationMessage] = useState(null)
   
   // Tab state with localStorage persistence and URL support
   const [activeTab, setActiveTab] = useState(() => {
@@ -51,8 +53,44 @@ export default function SettingsPage() {
     try {
       const stats = await api.getUsageStats(user.uid)
       setUsageStats(stats)
+      
+      // Verify subscription status if user has a subscription_id
+      if (stats.subscription_id) {
+        await verifySubscriptionStatus()
+      }
     } catch (error) {
       console.error('Error loading usage stats:', error)
+    }
+  }
+
+  const verifySubscriptionStatus = async () => {
+    if (!user) return
+    
+    setVerifying(true)
+    setVerificationMessage(null)
+    
+    try {
+      const result = await api.verifySubscription(user.uid)
+      
+      // If subscription was synced, reload usage stats
+      if (result.synced) {
+        setVerificationMessage('Subscription status updated!')
+        // Reload usage stats to get updated tier/limits
+        const stats = await api.getUsageStats(user.uid)
+        setUsageStats(stats)
+        
+        // Clear message after 3 seconds
+        setTimeout(() => setVerificationMessage(null), 3000)
+      } else if (result.success) {
+        setVerificationMessage('Subscription status is up to date')
+        setTimeout(() => setVerificationMessage(null), 3000)
+      }
+    } catch (error) {
+      console.error('Error verifying subscription:', error)
+      setVerificationMessage('Failed to verify subscription')
+      setTimeout(() => setVerificationMessage(null), 3000)
+    } finally {
+      setVerifying(false)
     }
   }
 
@@ -227,7 +265,25 @@ export default function SettingsPage() {
             {/* Subscription Tab */}
             {activeTab === 'subscription' && (
         <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8">
-          <h2 className="text-2xl font-black mb-6">SUBSCRIPTION</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-black">SUBSCRIPTION</h2>
+            <button
+              onClick={verifySubscriptionStatus}
+              disabled={verifying}
+              className="px-4 py-2 bg-[#4ECDC4] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all font-black disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {verifying ? 'VERIFYING...' : 'REFRESH STATUS'}
+            </button>
+          </div>
+          
+          {/* Verification Message */}
+          {verificationMessage && (
+            <div className={`mb-4 p-4 border-4 border-black ${
+              verificationMessage.includes('Failed') ? 'bg-[#FF6B6B]' : 'bg-[#4ECDC4]'
+            }`}>
+              <p className="font-black">{verificationMessage}</p>
+            </div>
+          )}
           
           <div className="space-y-6">
             {/* Current Plan */}

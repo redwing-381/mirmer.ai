@@ -169,6 +169,24 @@ export async function getUsageStats(userId) {
   return response.json();
 }
 
+/**
+ * Verify subscription status with Razorpay and sync with local database.
+ * 
+ * @param {string} userId - User ID
+ * @returns {Promise<Object>} Verification result with sync status
+ */
+export async function verifySubscription(userId) {
+  const response = await fetch(`${API_BASE}/payments/verify-subscription`, {
+    headers: getHeaders(userId),
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+}
+
 export const api = {
   sendMessageStream,
   createConversation,
@@ -176,4 +194,5 @@ export const api = {
   getConversation,
   deleteConversation,
   getUsageStats,
+  verifySubscription,
 };

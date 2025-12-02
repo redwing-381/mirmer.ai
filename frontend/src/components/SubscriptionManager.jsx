@@ -2,17 +2,31 @@ import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './ui/Card'
 import { Button } from './ui/Button'
 import { Badge } from './ui/Badge'
-import { Loader2, CreditCard, Calendar, AlertCircle } from 'lucide-react'
+import { Loader2, CreditCard, Calendar, AlertCircle, RefreshCw, Clock } from 'lucide-react'
 
-export default function SubscriptionManager({ user }) {
+export default function SubscriptionManager({ user, usageStats, onRefresh }) {
   const [subscription, setSubscription] = useState(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
+  const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState(null)
+  const [lastSyncTime, setLastSyncTime] = useState(null)
 
   useEffect(() => {
     fetchSubscription()
   }, [])
+
+  // Update subscription when usageStats changes
+  useEffect(() => {
+    if (usageStats) {
+      setSubscription(prev => ({
+        ...prev,
+        tier: usageStats.tier,
+        status: usageStats.subscription_status,
+        subscription_id: usageStats.subscription_id
+      }))
+    }
+  }, [usageStats])
 
   const fetchSubscription = async () => {
     try {
@@ -30,11 +44,47 @@ export default function SubscriptionManager({ user }) {
 
       const data = await response.json()
       setSubscription(data)
+      setLastSyncTime(new Date())
     } catch (err) {
       console.error('Error fetching subscription:', err)
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSyncSubscription = async () => {
+    setSyncing(true)
+    setError(null)
+
+    try {
+      const idToken = await user.getIdToken()
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/payments/verify-subscription`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'X-User-Id': user.uid
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to sync subscription')
+      }
+
+      const result = await response.json()
+      
+      // Update subscription data
+      await fetchSubscription()
+      setLastSyncTime(new Date())
+      
+      // Notify parent to refresh usage stats
+      if (onRefresh) {
+        await onRefresh()
+      }
+    } catch (err) {
+      console.error('Sync error:', err)
+      setError(err.message)
+    } finally {
+      setSyncing(false)
     }
   }
 
@@ -106,16 +156,34 @@ export default function SubscriptionManager({ user }) {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1">
             <CardTitle>Subscription</CardTitle>
             <CardDescription>Manage your billing and subscription</CardDescription>
           </div>
-          {subscription?.tier && (
-            <Badge variant={subscription.tier === 'pro' ? 'success' : 'default'}>
-              {subscription.tier.toUpperCase()}
-            </Badge>
-          )}
+          <div className="flex items-center gap-3">
+            {subscription?.tier && (
+              <Badge variant={subscription.tier === 'pro' ? 'success' : 'default'}>
+                {subscription.tier.toUpperCase()}
+              </Badge>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSyncSubscription}
+              disabled={syncing}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'Syncing...' : 'Sync'}
+            </Button>
+          </div>
         </div>
+        {lastSyncTime && (
+          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+            <Clock className="w-3 h-3" />
+            <span>Last synced: {lastSyncTime.toLocaleTimeString()}</span>
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -123,6 +191,23 @@ export default function SubscriptionManager({ user }) {
           <div className="p-4 bg-red-50 border-4 border-red-500 rounded-lg flex items-start">
             <AlertCircle className="w-5 h-5 text-red-500 mr-3 flex-shrink-0 mt-0.5" />
             <p className="text-red-700 font-bold">{error}</p>
+          </div>
+        )}
+
+        {/* Usage Limits - Always show */}
+        {usageStats && (
+          <div className="space-y-3 p-4 bg-gray-50 border-2 border-gray-200 rounded-lg">
+            <h4 className="font-bold text-sm text-gray-700">Query Limits</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Daily Limit</p>
+                <p className="text-lg font-black">{usageStats.daily_limit}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Monthly Limit</p>
+                <p className="text-lg font-black">{usageStats.monthly_limit}</p>
+              </div>
+            </div>
           </div>
         )}
 
