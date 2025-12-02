@@ -120,7 +120,7 @@
 
         const firebaseConfig = {
             apiKey: "AIzaSyC3UJ_Mh36gETyHrBCNHSCO9vwhzmA0rpk",
-            authDomain: "mirmer-ai.firebaseapp.com",
+            authDomain: "mirmer-ai.vercel.app",
             projectId: "mirmer-ai",
             storageBucket: "mirmer-ai.firebasestorage.app",
             messagingSenderId: "105319741582",
@@ -147,6 +147,10 @@
             
             // Set up auth state listener - this is more reliable than getRedirectResult
             onAuthStateChanged(auth, async (user) => {
+                console.log('Auth state changed, user:', user);
+                console.log('authHandled:', authHandled);
+                console.log('sessionStorage callback:', sessionStorage.getItem('mirmer_callback_url'));
+                
                 if (user && !authHandled && sessionStorage.getItem('mirmer_callback_url')) {
                     authHandled = true;
                     await handleAuthSuccess(user);
@@ -162,14 +166,16 @@
             
             // Also check redirect result for immediate feedback
             try {
+                console.log('Checking redirect result...');
                 const result = await getRedirectResult(auth);
+                console.log('Redirect result:', result);
                 
                 if (result && !authHandled) {
                     authHandled = true;
                     await handleAuthSuccess(result.user);
                 }
             } catch (error) {
-                console.error('Authentication error:', error);
+                console.error('Redirect result error:', error);
                 if (!authHandled) {
                     spinner.style.display = 'none';
                     document.getElementById('content').innerHTML = `<div class="error">Authentication failed: ${error.message}</div><br><button class="button" onclick="location.reload()">Try Again</button>`;
@@ -181,11 +187,13 @@
             const spinner = document.getElementById('spinner');
             const signInBtn = document.getElementById('signInBtn');
             
+            console.log('handleAuthSuccess called with user:', user);
             spinner.style.display = 'block';
             signInBtn.style.display = 'none';
             
             // Get callback URL from sessionStorage
             callbackUrl = sessionStorage.getItem('mirmer_callback_url');
+            console.log('Callback URL from sessionStorage:', callbackUrl);
             
             if (!callbackUrl) {
                 spinner.style.display = 'none';
@@ -195,16 +203,19 @@
             
             document.getElementById('message').textContent = 'Getting authentication token...';
             const token = await user.getIdToken();
+            console.log('Got token:', token ? 'yes' : 'no');
             
             spinner.style.display = 'none';
             document.getElementById('content').innerHTML = '<div class="success">✅ Authentication successful! Redirecting...</div>';
             
             const redirectUrl = `${callbackUrl}?token=${token}&email=${encodeURIComponent(user.email)}`;
+            console.log('Redirecting to:', redirectUrl);
             
             // Clean up
             sessionStorage.removeItem('mirmer_callback_url');
             
             setTimeout(() => {
+                console.log('Executing redirect now...');
                 window.location.href = redirectUrl;
             }, 1000);
         }
