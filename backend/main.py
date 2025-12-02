@@ -747,6 +747,36 @@ async def submit_enterprise_inquiry(inquiry: EnterpriseInquiry):
         raise HTTPException(status_code=500, detail="Failed to process inquiry")
 
 
+@app.get("/auth/cli")
+async def cli_auth(callback: str):
+    """
+    CLI authentication page.
+    Opens Firebase auth, then redirects to callback with token.
+    
+    Args:
+        callback: The local callback URL where the CLI is listening
+    
+    Returns:
+        HTML page that handles Firebase authentication
+    """
+    # Try to serve from backend/static (for Railway deployment)
+    static_cli_auth = Path(__file__).parent / "static" / "cli-auth.html"
+    if static_cli_auth.exists():
+        return FileResponse(static_cli_auth)
+    
+    # Try to serve from dist (production with frontend build)
+    dist_cli_auth = FRONTEND_DIST / "cli-auth.html"
+    if dist_cli_auth.exists():
+        return FileResponse(dist_cli_auth)
+    
+    # Fallback: serve from public (development)
+    cli_auth_file = Path(__file__).parent.parent / "frontend" / "public" / "cli-auth.html"
+    if cli_auth_file.exists():
+        return FileResponse(cli_auth_file)
+        
+    raise HTTPException(status_code=404, detail="CLI auth page not found. Run 'npm run build' in frontend directory.")
+
+
 # Catch-all route to serve frontend for SPA routing (must be last)
 @app.get("/{full_path:path}")
 async def serve_frontend(full_path: str):
