@@ -134,9 +134,14 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        // Get callback URL from query params
+        // Get callback URL from query params or sessionStorage
         const urlParams = new URLSearchParams(window.location.search);
-        const callbackUrl = urlParams.get('callback');
+        let callbackUrl = urlParams.get('callback');
+        
+        // If no callback in URL, check sessionStorage (we might be returning from redirect)
+        if (!callbackUrl) {
+            callbackUrl = sessionStorage.getItem('mirmer_callback_url');
+        }
 
         // Main initialization function
         async function init() {
@@ -148,16 +153,19 @@
                     const user = result.user;
                     const token = await user.getIdToken();
                     
-                    // Get callback URL from sessionStorage
-                    const storedCallback = sessionStorage.getItem('mirmer_callback_url');
-                    sessionStorage.removeItem('mirmer_callback_url');
-                    
                     document.getElementById('spinner').style.display = 'none';
                     showSuccess('Authentication successful! Redirecting...');
                     
-                    // Redirect to callback with token
+                    if (!callbackUrl) {
+                        showError('Missing callback URL. Please try again.');
+                        sessionStorage.removeItem('mirmer_callback_url');
+                        return;
+                    }
+                    
+                    // Clean up and redirect to callback with token
+                    sessionStorage.removeItem('mirmer_callback_url');
                     setTimeout(() => {
-                        window.location.href = `${storedCallback}?token=${token}&email=${encodeURIComponent(user.email)}`;
+                        window.location.href = `${callbackUrl}?token=${token}&email=${encodeURIComponent(user.email)}`;
                     }, 1000);
                     return;
                 }
@@ -171,10 +179,13 @@
             
             // Not returning from redirect, start new sign-in
             if (!callbackUrl) {
-                showError('Missing callback URL parameter');
+                showError('Missing callback URL parameter. Please run "mirmer login" again.');
                 return;
             }
 
+            // Store callback URL before redirecting
+            sessionStorage.setItem('mirmer_callback_url', callbackUrl);
+            
             // Auto-start sign-in
             setTimeout(() => {
                 signInWithGoogle();
@@ -186,9 +197,6 @@
             
             try {
                 document.getElementById('message').textContent = 'Redirecting to Google Sign-In...';
-                
-                // Store callback URL in sessionStorage so we can retrieve it after redirect
-                sessionStorage.setItem('mirmer_callback_url', callbackUrl);
                 
                 // Use redirect instead of popup (more reliable, no popup blockers)
                 await signInWithRedirect(auth, provider);
