@@ -413,6 +413,75 @@ class EmailService:
         """
         
         return self._send_email(user_email, subject, html_content)
+    
+    def send_subscription_support_notification(
+        self,
+        name: str,
+        email: str,
+        user_id: str,
+        subject: str,
+        message: str
+    ) -> bool:
+        """
+        Send notification to admin about subscription support request.
+        
+        Args:
+            name: User's name
+            email: User's email
+            user_id: User's Firebase ID
+            subject: Support request subject
+            message: Support request message
+            
+        Returns:
+            True if email was sent successfully
+        """
+        email_subject = f"Subscription Support: {subject} - {name}"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background-color: #4ECDC4; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 20px; background-color: #f9f9f9; }}
+                .info-box {{ background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #4ECDC4; }}
+                .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #666; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>💬 Subscription Support Request</h1>
+                </div>
+                <div class="content">
+                    <h2>User Information</h2>
+                    <div class="info-box">
+                        <p><strong>Name:</strong> {name}</p>
+                        <p><strong>Email:</strong> <a href="mailto:{email}">{email}</a></p>
+                        <p><strong>User ID:</strong> {user_id}</p>
+                    </div>
+                    
+                    <h2>Support Request</h2>
+                    <div class="info-box">
+                        <p><strong>Subject:</strong> {subject}</p>
+                        <p><strong>Message:</strong></p>
+                        <p>{message}</p>
+                    </div>
+                    
+                    <p><strong>Action Required:</strong> Please respond to this support request within 24 hours.</p>
+                </div>
+                <div class="footer">
+                    <p>&copy; 2024 Mirmer AI Admin Notification</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return self._send_email(ADMIN_EMAIL, email_subject, html_content)
 
 
 # Global email service instance

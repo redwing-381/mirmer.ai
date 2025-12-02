@@ -947,6 +947,45 @@ async def submit_enterprise_inquiry(inquiry: EnterpriseInquiry):
         raise HTTPException(status_code=500, detail="Failed to process inquiry")
 
 
+class SubscriptionSupportRequest(BaseModel):
+    name: str
+    email: str
+    subject: str
+    message: str
+
+
+@app.post("/api/subscription/support")
+async def submit_subscription_support(request: SubscriptionSupportRequest, x_user_id: str = Header(...)):
+    """
+    Handle subscription support requests.
+    Sends email to admin with user's support request.
+    """
+    try:
+        from email_service import email_service
+        
+        logger.info(f"Received subscription support request from {request.email} - Subject: {request.subject}")
+        
+        # Send notification to admin
+        admin_notified = email_service.send_subscription_support_notification(
+            name=request.name,
+            email=request.email,
+            user_id=x_user_id,
+            subject=request.subject,
+            message=request.message
+        )
+        
+        logger.info(f"Subscription support request processed - Admin notified: {admin_notified}")
+        
+        return {
+            "status": "success",
+            "message": "Your support request has been received. We'll respond within 24 hours."
+        }
+        
+    except Exception as e:
+        logger.error(f"Error processing subscription support request: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to process support request")
+
+
 @app.get("/auth/cli")
 async def cli_auth(callback: str):
     """

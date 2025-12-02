@@ -4,6 +4,7 @@ import { auth, logout } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { api } from '../api'
 import UpgradeModal from '../components/UpgradeModal'
+import SubscriptionSupportModal from '../components/SubscriptionSupportModal'
 import { ArrowLeft, BarChart3, CreditCard, User, RefreshCw } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -13,6 +14,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [usageStats, setUsageStats] = useState(null)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [showSupportModal, setShowSupportModal] = useState(false)
   const [verifying, setVerifying] = useState(false)
   const [verificationMessage, setVerificationMessage] = useState(null)
   
@@ -349,14 +351,14 @@ export default function SettingsPage() {
               <div className="p-6 bg-[#f5f5f5] border-4 border-black">
                 <h3 className="text-xl font-black mb-3">MANAGE SUBSCRIPTION</h3>
                 <p className="font-bold text-gray-600 mb-4">
-                  Your Pro subscription is active. Contact support to manage your subscription.
+                  Need help with your subscription? Our support team is here to assist you.
                 </p>
-                <a
-                  href="mailto:support@mirmer.ai?subject=Subscription Management"
+                <button
+                  onClick={() => setShowSupportModal(true)}
                   className="inline-block px-6 py-2 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all font-black"
                 >
                   CONTACT SUPPORT
-                </a>
+                </button>
               </div>
             )}
           </div>
@@ -409,6 +411,13 @@ export default function SettingsPage() {
       <UpgradeModal 
         isOpen={showUpgradeModal} 
         onClose={() => setShowUpgradeModal(false)} 
+      />
+
+      {/* Subscription Support Modal */}
+      <SubscriptionSupportModal
+        isOpen={showSupportModal}
+        onClose={() => setShowSupportModal(false)}
+        user={user}
       />
     </div>
   )
