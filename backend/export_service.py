@@ -4,7 +4,12 @@ Export service for generating conversation exports in various formats.
 Supports:
 - Markdown export with formatted conversation content
 - JSON export with complete conversation data structure
-- PDF export (to be implemented with WeasyPrint)
+- PDF export (optional server-side with WeasyPrint, client-side preferred)
+
+NOTE: PDF export is primarily handled client-side in the browser to avoid
+complex system dependencies. The server-side PDF export using WeasyPrint
+is optional and will only work if WeasyPrint and its system dependencies
+are properly installed.
 
 Requirements: 3.2, 3.3, 3.4
 """
@@ -210,6 +215,9 @@ class ExportService:
         """
         Export conversation to PDF format using WeasyPrint.
         
+        NOTE: This method requires WeasyPrint and its system dependencies.
+        If WeasyPrint is not available, use client-side PDF generation instead.
+        
         Args:
             conversation: Conversation dictionary
             
@@ -224,12 +232,17 @@ class ExportService:
         Requirements: 3.3, 2.4, 5.4
         """
         try:
-            # Try importing WeasyPrint
+            # Try importing WeasyPrint (optional dependency)
             try:
                 from weasyprint import HTML
             except ImportError as e:
-                logger.error(f"WeasyPrint import failed: {str(e)}")
-                raise ImportError("WeasyPrint is not properly installed. System dependencies may be missing.")
+                logger.warning(f"WeasyPrint not available: {str(e)}")
+                raise ImportError(
+                    "WeasyPrint is not available. "
+                    "Please use client-side PDF export in the browser, "
+                    "or install WeasyPrint with system dependencies: "
+                    "https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation"
+                )
             
             from jinja2 import Environment, FileSystemLoader
             import os

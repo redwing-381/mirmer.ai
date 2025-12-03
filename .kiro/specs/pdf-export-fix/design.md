@@ -1,505 +1,252 @@
-# Design Document
+# Design Document: Client-Side PDF Export
 
 ## Overview
 
-This document outlines the design for fixing the PDF export functionality in Mirmer AI. The current implementation has the correct template and export service code to render all three stages of the council process, but users are reporting that only Stage 1 (individual responses) appear in the exported PDF. This design identifies the root cause and provides a solution to ensure complete conversation data is included in all export formats.
+This design replaces the server-side WeasyPrint PDF generation with a client-side approach using the browser's native print functionality. This eliminates system dependency issues and provides a more reliable, platform-independent solution.
 
 ## Architecture
 
-The export functionality follows this flow:
-
+### Current Architecture (Problematic)
 ```
-User clicks Export → Frontend calls API → Backend retrieves conversation → 
-Export Service generates file → File returned to user
+User clicks PDF → Frontend calls /api/export/pdf → Backend uses WeasyPrint → Returns PDF bytes
+                                                    ↓
+                                            Requires system libs (pango, cairo, etc.)
+                                            Fails on Railway
 ```
 
-### Current Components
-
-1. **Frontend (ExportMenu.jsx)**: Provides UI for export format selection
-2. **Backend API (main.py)**: Export endpoints for each format
-3. **Storage Layer (storage_postgres.py / storage_json.py)**: Retrieves conversation data
-4. **Export Service (export_service.py)**: Generates formatted output
-5. **PDF Template (conversation_pdf.html)**: Jinja2 template for PDF rendering
-
-## Root Cause Analysis
-
-After reviewing the code, the implementation appears correct at all layers:
-
-1. **Storage Layer** (`storage_postgres.py` lines 85-95): Correctly retrieves all stage data
-   ```python
-   messages.append({
-       'role': 'assistant',
-       'stage1': msg.stage1_data or [],
-       'stage2': msg.stage2_data or [],
-       'stage3': msg.stage3_data or {},
-       'metadata': msg.message_metadata or {}
-   })
-   ```
-
-2. **Export Service** (`export_service.py`): Correctly passes data to template
-3. **PDF Template** (`conversation_pdf.html`): Correctly renders all three stages with conditional blocks
-
-### Potential Issues
-
-The most likely causes are:
-
-1. **Data Not Being Saved**: Stage 2 and Stage 3 data may not be persisted to the database during the council process
-2. **Timing Issue**: Export may be triggered before all stages complete
-3. **Data Structure Mismatch**: The data structure saved may not match what the template expects
-4. **Empty Data**: Stage data exists but contains empty arrays/objects
+### New Architecture (Reliable)
+```
+User clicks PDF → Frontend renders print-optimized view → Browser print API → PDF download
+                                                          ↓
+                                                   No server dependencies
+                                                   Works everywhere
+```
 
 ## Components and Interfaces
 
-### 1. Council Process Data Flow
+### 1. Frontend: ConversationPrintView Component
 
-The council process should save data at each stage:
+A new React component that renders a print-optimized version of the conversation:
 
-```python
-# Stage 1: Individual responses
-stage1_data = [
-    {"model": "gpt-4", "response": "..."},
-    {"model": "claude-3", "response": "..."}
-]
+```typescript
+interface ConversationPrintViewProps {
+  conversation: Conversation;
+  onClose: () => void;
+}
 
-# Stage 2: Peer rankings
-stage2_data = [
-    {
-        "model": "gpt-4",
-        "rankings": [
-            {"label": "Best", "reasoning": "..."},
-            {"label": "Good", "reasoning": "..."}
-        ]
-    }
-]
+// Component renders in a hidden iframe or modal
+// Styled specifically for print media
+// Triggers browser print dialog automatically
+```
 
-# Stage 3: Chairman synthesis
-stage3_data = {
-    "final_answer": "...",
-    "model": "gpt-4"
+### 2. Frontend: Print Styles
+
+CSS media queries for print-specific formatting:
+
+```css
+@media print {
+  /* Hide navigation, buttons, etc. */
+  /* Optimize typography for print */
+  /* Handle page breaks */
+  /* Ensure proper margins */
 }
 ```
 
-### 2. Storage Interface
+### 3. Backend: Export Endpoint Modification
 
-The storage layer must persist all three stages:
-
-```python
-def add_message(conversation_id: str, role: str, user_id: str, **kwargs) -> bool:
-    """
-    Add message with stage data.
-    
-    For assistant messages:
-    - stage1: List of individual responses
-    - stage2: List of peer rankings
-    - stage3: Dict with final synthesis
-    """
-```
-
-### 3. Export Service Interface
+Update the PDF export endpoint to return an error or redirect to client-side generation:
 
 ```python
-@staticmethod
-def export_to_pdf(conversation: Dict[str, Any]) -> bytes:
-    """
-    Generate PDF with validation.
-    
-    Should verify:
-    - All messages have expected structure
-    - Assistant messages contain stage data
-    - Log warnings for missing data
-    """
+@app.get("/api/conversations/{conversation_id}/export/pdf")
+async def export_pdf(conversation_id: str, user_id: str):
+    # Option 1: Return 501 Not Implemented with message
+    # Option 2: Return conversation data for client-side rendering
+    # Option 3: Keep WeasyPrint as optional fallback
 ```
 
 ## Data Models
 
-### Conversation Structure
+No changes to existing data models. The conversation structure remains the same:
 
 ```python
 {
-    "id": "uuid",
-    "user_id": "firebase_uid",
-    "title": "Conversation Title",
-    "created_at": "2024-01-01T00:00:00",
-    "messages": [
-        {
-            "role": "user",
-            "content": "User question"
-        },
-        {
-            "role": "assistant",
-            "stage1": [...],  # Must be present
-            "stage2": [...],  # Must be present
-            "stage3": {...},  # Must be present
-            "metadata": {}
-        }
-    ]
+  "id": str,
+  "title": str,
+  "created_at": str,
+  "messages": [
+    {
+      "role": "user" | "assistant",
+      "content": str,
+      "stage1": [...],  # For assistant messages
+      "stage2": [...],
+      "stage3": {...}
+    }
+  ]
 }
-```
-
-### Message Model (Database)
-
-```python
-class Message(Base):
-    id: int
-    conversation_id: str
-    role: str  # 'user' or 'assistant'
-    content: str  # For user messages
-    stage1_data: JSON  # For assistant messages
-    stage2_data: JSON  # For assistant messages
-    stage3_data: JSON  # For assistant messages
-    message_metadata: JSON
-    created_at: datetime
 ```
 
 ## Correctness Properties
 
 *A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
 
-### Property 1: Complete Stage Data Persistence
+### Acceptance Criteria Testing Prework
 
-*For any* assistant message saved to the database, all three stage fields (stage1_data, stage2_data, stage3_data) should contain non-null values after the council process completes.
+1.1 WHEN a user clicks the PDF export button THEN the system SHALL generate a PDF of the conversation without server-side dependencies
+  Thoughts: This is testing that PDF generation works across all conversations without requiring server-side libraries. We can test this by generating random conversations and ensuring the client-side generation succeeds.
+  Testable: yes - property
 
-**Validates: Requirements 1.1, 1.2, 1.3, 2.2**
+1.2 WHEN PDF generation is triggered THEN the system SHALL format the conversation with all three stages
+  Thoughts: This is testing that the formatted output contains all required sections. We can generate random conversations and verify the rendered HTML contains stage1, stage2, and stage3 sections.
+  Testable: yes - property
 
-### Property 2: Export Data Completeness
+1.3 WHEN the PDF is generated THEN the system SHALL include conversation metadata
+  Thoughts: This is testing that metadata fields are present in the output. We can generate random conversations and verify title, date, and ID appear in the rendered content.
+  Testable: yes - property
 
-*For any* conversation exported to PDF, if the conversation contains assistant messages with stage data in the database, then the exported PDF should contain all three stages rendered in the document.
+1.4 WHEN PDF generation completes THEN the system SHALL automatically download the file
+  Thoughts: This is a UI interaction that triggers browser download. We can test that the print function is called.
+  Testable: yes - example
 
-**Validates: Requirements 1.1, 1.2, 1.3, 3.3**
+1.5 WHEN PDF generation fails THEN the system SHALL display a clear error message
+  Thoughts: This is testing error handling for specific failure cases.
+  Testable: yes - example
 
-### Property 3: Format Consistency
+2.1 WHEN the application is deployed to Railway THEN the PDF export SHALL function without requiring system-level dependencies
+  Thoughts: This is about deployment environment, not a functional property we can test in code.
+  Testable: no
 
-*For any* conversation, exporting to Markdown, PDF, and JSON should produce outputs that contain equivalent stage data (same number of stages, same models, same content).
+2.2 WHEN the PDF export is triggered THEN the system SHALL not cause server errors or crashes
+  Thoughts: This is testing that the endpoint handles requests gracefully. We can test that the endpoint returns appropriate responses.
+  Testable: yes - property
 
-**Validates: Requirements 3.1, 3.2, 3.3, 3.4**
+2.3 WHEN the backend receives an export request THEN the system SHALL handle it gracefully regardless of available dependencies
+  Thoughts: This is testing error handling when WeasyPrint is not available.
+  Testable: yes - example
 
-### Property 4: Data Retrieval Integrity
+2.4 WHEN WeasyPrint is not available THEN the system SHALL fall back to client-side generation
+  Thoughts: This is testing the fallback behavior, which is a specific scenario.
+  Testable: yes - example
 
-*For any* conversation ID and user ID, calling `storage.get_conversation()` should return a dictionary where assistant messages contain stage1, stage2, and stage3 keys matching the database values.
+3.1 WHEN the PDF is generated THEN the system SHALL apply consistent styling and formatting
+  Thoughts: This is about visual consistency, which is subjective and not easily testable programmatically.
+  Testable: no
 
-**Validates: Requirements 2.1, 2.2, 2.3**
+3.2 WHEN displaying messages THEN the system SHALL clearly distinguish between user and assistant messages
+  Thoughts: This is testing that the rendered HTML contains distinguishing markers. We can verify CSS classes or data attributes are present.
+  Testable: yes - property
 
-### Property 5: Template Rendering Completeness
+3.3 WHEN displaying assistant responses THEN the system SHALL organize content by stage with clear headings
+  Thoughts: This is testing that stage headings are present in the rendered output.
+  Testable: yes - property
 
-*For any* conversation with complete stage data, rendering the PDF template should produce HTML that contains sections for Stage 1, Stage 2, and Stage 3 with visible content.
+3.4 WHEN the PDF contains long content THEN the system SHALL handle page breaks appropriately
+  Thoughts: This is about CSS page-break properties being applied, which we can verify are present in the styles.
+  Testable: yes - example
 
-**Validates: Requirements 1.4, 4.1, 4.2, 4.3, 4.4**
+3.5 WHEN the PDF is viewed THEN the system SHALL use readable fonts and appropriate spacing
+  Thoughts: This is subjective visual design that can't be programmatically tested.
+  Testable: no
+
+### Property Reflection
+
+After reviewing the properties:
+- Properties 1.2 and 1.3 both test that rendered content contains required elements - these can be combined
+- Properties 3.2 and 3.3 both test HTML structure and can be combined into one comprehensive property
+- Property 2.2 is redundant with 2.3 - both test graceful error handling
+
+Consolidated properties:
+- Property 1: Client-side PDF generation works for all conversations
+- Property 2: Rendered content includes all required sections and metadata
+- Property 3: Backend handles export requests gracefully
+
+### Correctness Properties
+
+Property 1: Client-side generation succeeds
+*For any* valid conversation with messages, triggering client-side PDF generation should successfully render the print view without errors
+**Validates: Requirements 1.1**
+
+Property 2: Complete content rendering
+*For any* conversation, the rendered print view should contain all message content, stage sections (stage1, stage2, stage3), and metadata (title, date, ID)
+**Validates: Requirements 1.2, 1.3, 3.2, 3.3**
+
+Property 3: Graceful backend handling
+*For any* export request to the backend, the endpoint should return a valid response (either success or appropriate error) without causing server crashes
+**Validates: Requirements 2.2, 2.3**
 
 ## Error Handling
 
-### 1. Missing Stage Data
+### Client-Side Errors
 
-```python
-def validate_conversation_data(conversation: Dict[str, Any]) -> List[str]:
-    """
-    Validate conversation has complete data.
-    
-    Returns:
-        List of warning messages for missing data
-    """
-    warnings = []
-    
-    for i, msg in enumerate(conversation.get('messages', [])):
-        if msg.get('role') == 'assistant':
-            if not msg.get('stage1'):
-                warnings.append(f"Message {i}: Missing Stage 1 data")
-            if not msg.get('stage2'):
-                warnings.append(f"Message {i}: Missing Stage 2 data")
-            if not msg.get('stage3'):
-                warnings.append(f"Message {i}: Missing Stage 3 data")
-    
-    return warnings
-```
+1. **Browser doesn't support print API**: Show error message with fallback instructions
+2. **Conversation data incomplete**: Display warning and proceed with available data
+3. **Rendering fails**: Catch errors and show user-friendly message
 
-### 2. Export Failure Handling
+### Backend Errors
 
-- Log detailed error messages with conversation ID
-- Return user-friendly error messages
-- Provide partial export if some data is available
-- Include warning in PDF if data is incomplete
-
-### 3. Database Query Errors
-
-- Catch and log SQLAlchemy exceptions
-- Return None for not found conversations
-- Validate user ownership before export
+1. **WeasyPrint not available**: Return 501 with message directing to client-side export
+2. **Conversation not found**: Return 404 with clear error message
+3. **Authentication failure**: Return 401 with authentication error
 
 ## Testing Strategy
 
 ### Unit Tests
 
-1. **Test Storage Layer**
-   - Verify `get_conversation()` returns all stage data
-   - Test with conversations that have complete stage data
-   - Test with conversations missing some stages
-
-2. **Test Export Service**
-   - Verify Markdown export includes all stages
-   - Verify JSON export includes all stages
-   - Verify PDF generation with complete data
-   - Test error handling for missing data
-
-3. **Test Data Validation**
-   - Verify validation function detects missing stages
-   - Test warning message generation
-   - Test with various incomplete data scenarios
+- Test ConversationPrintView component renders correctly with sample data
+- Test print styles are applied correctly
+- Test error handling for missing data
+- Test backend endpoint returns appropriate responses
 
 ### Property-Based Tests
 
-We will use **Hypothesis** (Python's property-based testing library) for testing universal properties.
+We'll use a JavaScript property testing library (fast-check) for frontend tests:
 
-#### Property Test 1: Stage Data Round-Trip
+- **Property 1**: Generate random conversations and verify print view renders without errors
+- **Property 2**: Generate random conversations and verify all required sections appear in rendered HTML
+- **Property 3**: Test backend endpoint with various inputs and verify no crashes
 
-**Property 1: Complete Stage Data Persistence**
-
-```python
-from hypothesis import given, strategies as st
-import hypothesis.strategies as st
-
-@given(
-    stage1=st.lists(st.fixed_dictionaries({
-        'model': st.text(min_size=1),
-        'response': st.text(min_size=1)
-    }), min_size=1),
-    stage2=st.lists(st.fixed_dictionaries({
-        'model': st.text(min_size=1),
-        'rankings': st.lists(st.fixed_dictionaries({
-            'label': st.text(min_size=1),
-            'reasoning': st.text(min_size=1)
-        }), min_size=1)
-    }), min_size=1),
-    stage3=st.fixed_dictionaries({
-        'final_answer': st.text(min_size=1),
-        'model': st.text(min_size=1)
-    })
-)
-def test_stage_data_persistence(stage1, stage2, stage3):
-    """
-    Property: For any valid stage data, saving and retrieving a message
-    should preserve all three stages.
-    
-    Validates: Requirements 2.2
-    """
-    # Create conversation and add assistant message
-    conv_id = create_test_conversation()
-    add_message(conv_id, 'assistant', stage1=stage1, stage2=stage2, stage3=stage3)
-    
-    # Retrieve conversation
-    conversation = get_conversation(conv_id)
-    
-    # Verify all stages are present
-    assert len(conversation['messages']) > 0
-    msg = conversation['messages'][-1]
-    assert msg['stage1'] == stage1
-    assert msg['stage2'] == stage2
-    assert msg['stage3'] == stage3
-```
-
-#### Property Test 2: Export Format Consistency
-
-**Property 3: Format Consistency**
-
-```python
-@given(
-    conversation=st.fixed_dictionaries({
-        'id': st.uuids().map(str),
-        'title': st.text(min_size=1, max_size=100),
-        'messages': st.lists(
-            st.one_of(
-                # User message
-                st.fixed_dictionaries({
-                    'role': st.just('user'),
-                    'content': st.text(min_size=1)
-                }),
-                # Assistant message
-                st.fixed_dictionaries({
-                    'role': st.just('assistant'),
-                    'stage1': st.lists(st.fixed_dictionaries({
-                        'model': st.text(min_size=1),
-                        'response': st.text(min_size=1)
-                    }), min_size=1),
-                    'stage2': st.lists(st.fixed_dictionaries({
-                        'model': st.text(min_size=1),
-                        'rankings': st.lists(st.fixed_dictionaries({
-                            'label': st.text(min_size=1),
-                            'reasoning': st.text(min_size=1)
-                        }), min_size=1)
-                    }), min_size=1),
-                    'stage3': st.fixed_dictionaries({
-                        'final_answer': st.text(min_size=1)
-                    })
-                })
-            ),
-            min_size=1
-        )
-    })
-)
-def test_export_format_consistency(conversation):
-    """
-    Property: For any conversation, all export formats should contain
-    the same stage data.
-    
-    Validates: Requirements 3.1, 3.2, 3.3, 3.4
-    """
-    # Export to all formats
-    markdown = ExportService.export_to_markdown(conversation)
-    json_str = ExportService.export_to_json(conversation)
-    pdf_bytes = ExportService.export_to_pdf(conversation)
-    
-    # Parse JSON export
-    json_data = json.loads(json_str)
-    
-    # Verify JSON contains all messages
-    assert len(json_data['messages']) == len(conversation['messages'])
-    
-    # For each assistant message, verify all stages in all formats
-    for msg in conversation['messages']:
-        if msg['role'] == 'assistant':
-            # Check Markdown contains stage headers
-            assert 'Stage 1: Individual Model Responses' in markdown
-            assert 'Stage 2: Peer Rankings' in markdown
-            assert 'Stage 3: Chairman Synthesis' in markdown
-            
-            # Check JSON contains stage data
-            assert any(m.get('stage1') for m in json_data['messages'])
-            assert any(m.get('stage2') for m in json_data['messages'])
-            assert any(m.get('stage3') for m in json_data['messages'])
-            
-            # Check PDF was generated (non-empty)
-            assert len(pdf_bytes) > 0
-```
-
-#### Property Test 3: Data Validation Accuracy
-
-**Property 4: Data Retrieval Integrity**
-
-```python
-@given(
-    has_stage1=st.booleans(),
-    has_stage2=st.booleans(),
-    has_stage3=st.booleans()
-)
-def test_validation_detects_missing_stages(has_stage1, has_stage2, has_stage3):
-    """
-    Property: For any combination of present/missing stages, the validation
-    function should correctly identify which stages are missing.
-    
-    Validates: Requirements 2.3, 2.4
-    """
-    # Create message with conditional stages
-    message = {'role': 'assistant'}
-    if has_stage1:
-        message['stage1'] = [{'model': 'test', 'response': 'test'}]
-    if has_stage2:
-        message['stage2'] = [{'model': 'test', 'rankings': []}]
-    if has_stage3:
-        message['stage3'] = {'final_answer': 'test'}
-    
-    conversation = {
-        'id': 'test',
-        'messages': [message]
-    }
-    
-    # Validate
-    warnings = validate_conversation_data(conversation)
-    
-    # Check warnings match missing stages
-    if not has_stage1:
-        assert any('Stage 1' in w for w in warnings)
-    if not has_stage2:
-        assert any('Stage 2' in w for w in warnings)
-    if not has_stage3:
-        assert any('Stage 3' in w for w in warnings)
-    
-    # If all stages present, no warnings
-    if has_stage1 and has_stage2 and has_stage3:
-        assert len(warnings) == 0
-```
+Each property-based test will run a minimum of 100 iterations. Tests will be tagged with:
+`**Feature: pdf-export-fix, Property {number}: {property_text}**`
 
 ### Integration Tests
 
-1. **End-to-End Export Test**
-   - Create conversation with council process
-   - Wait for all stages to complete
-   - Export to PDF
-   - Verify PDF contains all three stages
+- Test full flow: click export → render view → trigger print
+- Test with conversations of varying sizes
+- Test with incomplete conversation data
 
-2. **Database Integration Test**
-   - Save message with all stages
-   - Retrieve from database
-   - Verify data integrity
-   - Export and verify content
+## Implementation Approach
 
-### Manual Testing
+### Phase 1: Create Print View Component
+1. Create `ConversationPrintView.jsx` component
+2. Add print-specific CSS styles
+3. Implement automatic print dialog trigger
 
-1. Create a new conversation
-2. Send a message and wait for full council process
-3. Export to PDF
-4. Open PDF and verify:
-   - Stage 1 shows all model responses
-   - Stage 2 shows all peer rankings
-   - Stage 3 shows chairman synthesis
-5. Compare with Markdown export for consistency
+### Phase 2: Update Export Button
+1. Modify export button to use client-side generation
+2. Remove server-side PDF endpoint call
+3. Add loading states and error handling
 
-## Implementation Plan
+### Phase 3: Backend Cleanup
+1. Update PDF export endpoint to return appropriate response
+2. Make WeasyPrint optional dependency
+3. Update documentation
 
-### Phase 1: Diagnosis (Investigation)
+### Phase 4: Testing
+1. Write unit tests for print view component
+2. Write property-based tests for rendering
+3. Test across different browsers
+4. Verify works in production
 
-1. Add detailed logging to council process
-2. Log when each stage data is saved
-3. Add logging to export endpoint
-4. Log conversation data structure before export
-5. Verify database contains stage data
+## Migration Strategy
 
-### Phase 2: Fix Data Persistence (If Needed)
+1. Deploy new client-side implementation
+2. Keep backend endpoint but return "use client-side" message
+3. Monitor for any issues
+4. Eventually remove WeasyPrint dependency entirely
 
-1. Review `council.py` to ensure all stages are saved
-2. Add validation after each stage save
-3. Ensure SSE streaming doesn't skip database saves
-4. Add transaction handling for message saves
+## Benefits of This Approach
 
-### Phase 3: Add Data Validation
-
-1. Implement `validate_conversation_data()` function
-2. Add validation before export
-3. Log warnings for missing data
-4. Return user-friendly error messages
-
-### Phase 4: Improve Export Service
-
-1. Add data validation in export service
-2. Handle missing stages gracefully
-3. Add warning messages in PDF for incomplete data
-4. Improve error messages
-
-### Phase 5: Testing
-
-1. Write unit tests for validation
-2. Write property-based tests
-3. Test with real conversations
-4. Verify all export formats
-
-### Phase 6: Documentation
-
-1. Update API documentation
-2. Add troubleshooting guide
-3. Document expected data structure
-4. Add examples of complete exports
-
-## Deployment Considerations
-
-1. **Database Migration**: No schema changes needed
-2. **Backward Compatibility**: Fix should work with existing data
-3. **Monitoring**: Add metrics for export success/failure rates
-4. **Logging**: Enhanced logging for debugging
-5. **Testing**: Comprehensive test coverage before deployment
-
-## Success Criteria
-
-1. All three stages appear in PDF exports
-2. Export formats (Markdown, PDF, JSON) contain equivalent data
-3. Clear error messages when data is incomplete
-4. Validation catches missing stage data
-5. Property-based tests pass with 100+ iterations
-6. Manual testing confirms complete exports
-
+1. **No system dependencies**: Works on any platform (Railway, Vercel, local)
+2. **Better browser compatibility**: Uses native browser print functionality
+3. **Faster**: No server round-trip for PDF generation
+4. **More maintainable**: Less complex dependency chain
+5. **Better print quality**: Browser's print engine is highly optimized

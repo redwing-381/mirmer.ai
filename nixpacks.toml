@@ -1,14 +1,14 @@
 [phases.setup]
 nixPkgs = [
   "python310", 
-  "nodejs-18_x",
-  # WeasyPrint system dependencies
-  "pango",
-  "glib",
-  "harfbuzz",
-  "fontconfig",
-  "freetype",
-  "libffi"
+  "nodejs-18_x"
+  # WeasyPrint system dependencies removed - using client-side PDF generation
+  # "pango",
+  # "glib",
+  # "harfbuzz",
+  # "fontconfig",
+  # "freetype",
+  # "libffi"
 ]
 
 [phases.install]

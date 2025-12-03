@@ -579,65 +579,62 @@ async def export_conversation_pdf(conversation_id: str, x_user_id: str = Header(
     """
     Export conversation to PDF format.
     
-    Requirements: 3.3
+    NOTE: PDF export is now handled client-side in the browser.
+    This endpoint is kept for backward compatibility but will return
+    a message directing users to use the client-side export.
+    
+    Requirements: 2.1, 2.2, 2.3, 2.4
     """
     try:
-        # Get conversation
-        logger.info(f"📄 Export: Retrieving conversation {conversation_id} for PDF export")
+        # Get conversation to verify it exists
+        logger.info(f"📄 Export: PDF export requested for conversation {conversation_id}")
         conversation = storage.get_conversation(conversation_id, user_id=x_user_id)
         
         if not conversation:
             raise HTTPException(status_code=404, detail="Conversation not found")
         
-        # DIAGNOSTIC: Log conversation structure
-        logger.info(f"📄 Export: Retrieved conversation with {len(conversation.get('messages', []))} messages")
-        for i, msg in enumerate(conversation.get('messages', [])):
-            if msg.get('role') == 'assistant':
-                has_stage1 = bool(msg.get('stage1'))
-                has_stage2 = bool(msg.get('stage2'))
-                has_stage3 = bool(msg.get('stage3'))
-                logger.info(f"  Message {i}: Assistant - Stage1: {has_stage1}, Stage2: {has_stage2}, Stage3: {has_stage3}")
-                if has_stage1:
-                    logger.info(f"    Stage 1: {len(msg.get('stage1', []))} responses")
-                if has_stage2:
-                    logger.info(f"    Stage 2: {len(msg.get('stage2', []))} rankings")
-                if has_stage3:
-                    logger.info(f"    Stage 3: {len(msg.get('stage3', {}).get('response', ''))} chars")
-                logger.debug(f"    Full message data: {msg}")
-        
-        # Generate PDF
+        # Try to use WeasyPrint if available (optional)
         try:
-            pdf_bytes = ExportService.export_to_pdf(conversation)
-        except ValueError as e:
-            # User-friendly error for PDF generation issues
-            logger.error(f"PDF generation failed for {conversation_id}: {str(e)}", exc_info=True)
-            raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
-        except ImportError as e:
-            # Missing dependency error
-            logger.error(f"PDF export dependency missing: {str(e)}", exc_info=True)
-            raise HTTPException(status_code=500, detail="PDF export is not available. Please contact support.")
-        except Exception as e:
-            logger.error(f"Unexpected error during PDF generation: {str(e)}", exc_info=True)
-            raise HTTPException(status_code=500, detail="An unexpected error occurred during PDF export")
-        
-        # Generate filename
-        filename = generate_export_filename(conversation, 'pdf')
-        
-        logger.info(f"✅ PDF export completed successfully for {conversation_id} ({len(pdf_bytes)} bytes)")
-        
-        # Return as downloadable file
-        return Response(
-            content=pdf_bytes,
-            media_type="application/pdf",
-            headers={
-                "Content-Disposition": f'attachment; filename="{filename}"'
-            }
-        )
+            from export_service import ExportService, generate_export_filename
+            
+            # Check if WeasyPrint is available
+            try:
+                import weasyprint
+                logger.info(f"📄 Export: WeasyPrint available, generating PDF server-side")
+                
+                # Generate PDF
+                pdf_bytes = ExportService.export_to_pdf(conversation)
+                filename = generate_export_filename(conversation, 'pdf')
+                
+                logger.info(f"✅ PDF export completed successfully for {conversation_id} ({len(pdf_bytes)} bytes)")
+                
+                # Return as downloadable file
+                return Response(
+                    content=pdf_bytes,
+                    media_type="application/pdf",
+                    headers={
+                        "Content-Disposition": f'attachment; filename="{filename}"'
+                    }
+                )
+            except ImportError:
+                # WeasyPrint not available - return helpful message
+                logger.info(f"📄 Export: WeasyPrint not available, directing to client-side export")
+                raise HTTPException(
+                    status_code=501,
+                    detail="Server-side PDF export is not available. Please use the client-side PDF export feature in your browser."
+                )
+        except ImportError:
+            # Export service not available
+            logger.info(f"📄 Export: Export service not available, directing to client-side export")
+            raise HTTPException(
+                status_code=501,
+                detail="Server-side PDF export is not available. Please use the client-side PDF export feature in your browser."
+            )
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error exporting conversation to PDF: {str(e)}", exc_info=True)
+        logger.error(f"Error in PDF export endpoint: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to export conversation")
 
 

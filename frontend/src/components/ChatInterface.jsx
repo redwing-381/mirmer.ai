@@ -139,7 +139,11 @@ export default function ChatInterface({ conversation, onSendMessage, loading, us
         {/* Floating Export Button */}
         {conversation.messages && conversation.messages.length > 0 && (
           <div className="fixed bottom-24 right-8 z-10">
-            <ExportMenu conversationId={conversation.id} userId={userId} />
+            <ExportMenu 
+              conversationId={conversation.id} 
+              userId={userId}
+              conversation={conversation}
+            />
           </div>
         )}
       </div>
