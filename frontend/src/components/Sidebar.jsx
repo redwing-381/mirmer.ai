@@ -27,6 +27,8 @@ export default function Sidebar({
   onDeleteConversation,
   isCollapsed = false,
   onToggleCollapse,
+  mobileMenuOpen = false,
+  onMobileMenuClose,
   userId
 }) {
   const navigate = useNavigate()
@@ -97,13 +99,32 @@ export default function Sidebar({
 
   return (
     <>
+      {/* Mobile Backdrop - only visible on mobile when menu is open */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={onMobileMenuClose}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Sidebar Content */}
-      <div className={`fixed left-0 top-0 w-80 bg-white border-r-4 border-black h-screen flex flex-col transition-transform duration-300 ease-in-out z-40 ${isCollapsed ? '-translate-x-full' : 'translate-x-0'}`}>
+      <div className={`fixed left-0 top-0 w-80 bg-white border-r-4 border-black h-screen flex flex-col transition-transform duration-300 ease-in-out z-50 ${
+        // Mobile: show when mobileMenuOpen is true, hide otherwise
+        // Desktop (md and up): show/hide based on isCollapsed
+        mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      } ${isCollapsed ? 'md:-translate-x-full' : ''}`}>
         {/* Header */}
       <div className="p-4 border-b-4 border-black bg-[#4ECDC4]">
         <h2 className="text-2xl font-black mb-3">CONVERSATIONS</h2>
         <button
-          onClick={onNewConversation}
+          onClick={() => {
+            onNewConversation()
+            // Close mobile menu when new conversation is created
+            if (onMobileMenuClose) {
+              onMobileMenuClose()
+            }
+          }}
           className="w-full px-4 py-3 bg-[#FF6B6B] text-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all font-black mb-3"
         >
           + New Conversation
@@ -146,7 +167,13 @@ export default function Sidebar({
                   }`}
                 >
                   <button
-                    onClick={() => onSelectConversation(conversation.id)}
+                    onClick={() => {
+                      onSelectConversation(conversation.id)
+                      // Close mobile menu when conversation is selected
+                      if (onMobileMenuClose) {
+                        onMobileMenuClose()
+                      }
+                    }}
                     className="w-full text-left px-4 py-3 pr-12"
                   >
                     <div className="font-black text-sm truncate mb-1">
@@ -207,10 +234,10 @@ export default function Sidebar({
       </AlertDialog>
       </div>
       
-      {/* Toggle Button - Always Visible */}
+      {/* Toggle Button - Hidden on mobile, visible on desktop */}
       <button
         onClick={onToggleCollapse}
-        className={`fixed top-1/2 -translate-y-1/2 z-50 p-3 bg-[#4ECDC4] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all font-black ${isCollapsed ? 'left-0' : 'left-80'}`}
+        className={`hidden md:block fixed top-1/2 -translate-y-1/2 z-50 p-3 bg-[#4ECDC4] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all font-black ${isCollapsed ? 'left-0' : 'left-80'}`}
         aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >

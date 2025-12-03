@@ -85,22 +85,22 @@ export default function ChatInterface({ conversation, onSendMessage, loading, us
 
   return (
     <div className="flex-1 flex flex-col bg-[#f5f5f5] min-h-0">
-      {/* Messages Area - Reduced padding */}
-      <div className="flex-1 overflow-y-auto p-4 min-h-0 relative" style={{
+      {/* Messages Area - Responsive padding */}
+      <div className="flex-1 overflow-y-auto p-2 md:p-4 min-h-0 relative" style={{
         backgroundImage: `
           linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
           linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px)
         `,
         backgroundSize: '40px 40px'
       }}>
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="max-w-full md:max-w-4xl mx-auto space-y-4 md:space-y-6">
           {conversation.messages?.map((message, index) => (
             <div key={index}>
               {message.role === 'user' ? (
                 // User Message
                 <div className="flex justify-end mb-4">
-                  <div className="bg-[#4ECDC4] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-6 py-4 max-w-2xl font-bold">
-                    <p className="whitespace-pre-wrap">{message.content}</p>
+                  <div className="bg-[#4ECDC4] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-4 md:px-6 py-3 md:py-4 max-w-full md:max-w-2xl font-bold">
+                    <p className="whitespace-pre-wrap break-words">{message.content}</p>
                   </div>
                 </div>
               ) : (
@@ -136,9 +136,9 @@ export default function ChatInterface({ conversation, onSendMessage, loading, us
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Floating Export Button */}
+        {/* Floating Export Button - Responsive positioning */}
         {conversation.messages && conversation.messages.length > 0 && (
-          <div className="fixed bottom-24 right-8 z-10">
+          <div className="fixed bottom-16 md:bottom-24 right-4 md:right-8 z-10">
             <ExportMenu 
               conversationId={conversation.id} 
               userId={userId}
@@ -148,9 +148,9 @@ export default function ChatInterface({ conversation, onSendMessage, loading, us
         )}
       </div>
 
-      {/* Input Area - Reduced padding */}
-      <div className="border-t-4 border-black bg-white p-4 flex-shrink-0">
-        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+      {/* Input Area - Responsive padding */}
+      <div className="border-t-4 border-black bg-white p-3 md:p-4 flex-shrink-0">
+        <form onSubmit={handleSubmit} className="max-w-full md:max-w-4xl mx-auto">
           {isOverLimit && (
             <div className="mb-4 p-4 bg-[#FFE66D] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <p className="font-black text-lg mb-2">⚠️ Daily Limit Reached!</p>
@@ -165,25 +165,26 @@ export default function ChatInterface({ conversation, onSendMessage, loading, us
             </div>
           )}
           
-          <div className="flex space-x-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={isOverLimit ? "Daily limit reached. Upgrade to continue..." : "Ask your question... (10-2000 characters)"}
-              className="flex-1 px-3 py-2 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] resize-none font-medium transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="flex-1 px-3 py-2 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] resize-none font-medium transition-all disabled:bg-gray-100 disabled:cursor-not-allowed text-base"
               rows="2"
+              style={{ fontSize: '16px' }}
               disabled={loading || isOverLimit}
             />
             <button
               type="submit"
               disabled={loading || !input.trim() || input.trim().length < 10 || isOverLimit}
-              className="px-6 py-2 bg-[#FF6B6B] text-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all font-black text-base"
+              className="px-6 py-3 bg-[#FF6B6B] text-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all font-black text-base min-h-[44px] sm:min-h-0"
             >
               {loading ? (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-center space-x-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Processing...</span>
+                  <span className="hidden sm:inline">Processing...</span>
                 </div>
               ) : (
                 'Send'

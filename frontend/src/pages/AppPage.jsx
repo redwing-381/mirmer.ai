@@ -3,8 +3,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../api'
 import Sidebar from '../components/Sidebar'
 import ChatInterface from '../components/ChatInterface'
-import { auth, logout } from '../firebase'
+import { auth } from '../firebase'
 import { onAuthStateChanged } from 'firebase/auth'
+import { Menu } from 'lucide-react'
 
 function AppPage() {
   const navigate = useNavigate()
@@ -29,6 +30,9 @@ function AppPage() {
       return false
     }
   })
+
+  // Mobile menu state (sidebar is hidden by default on mobile)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Listen for auth state changes
   useEffect(() => {
@@ -187,17 +191,7 @@ function AppPage() {
     }
   }
 
-  const handleLogout = async () => {
-    try {
-      await logout()
-      setConversations([])
-      setCurrentConversationId(null)
-      setCurrentConversation(null)
-      navigate('/')
-    } catch (error) {
-      console.error('Error logging out:', error)
-    }
-  }
+
 
   const handleToggleSidebar = () => {
     const newState = !sidebarCollapsed
@@ -320,35 +314,38 @@ function AppPage() {
         onDeleteConversation={handleDeleteConversation}
         isCollapsed={sidebarCollapsed}
         onToggleCollapse={handleToggleSidebar}
+        mobileMenuOpen={mobileMenuOpen}
+        onMobileMenuClose={() => setMobileMenuOpen(false)}
         userId={user?.uid}
       />
 
       {/* Scrollable Chat Area */}
-      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : 'ml-80'}`}>
-        <div className="bg-white border-b-4 border-black p-6 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src="/favicon.png" alt="Mirmer AI Logo" className="w-10 h-10 border-2 border-black" />
-              <h1 className="text-4xl font-black">
+      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'md:ml-0' : 'md:ml-80'}`}>
+        <div className="bg-white border-b-4 border-black p-4 md:p-6 flex-shrink-0">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              {/* Hamburger menu button - visible only on mobile */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
+                aria-label="Toggle menu"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              
+              <img src="/favicon.png" alt="Mirmer AI Logo" className="w-8 h-8 md:w-10 md:h-10 border-2 border-black" />
+              <h1 className="text-2xl md:text-4xl font-black">
                 MIRMER AI
               </h1>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3 bg-[#4ECDC4] border-4 border-black px-4 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <img 
-                  src={user.photoURL} 
-                  alt={user.displayName}
-                  className="w-8 h-8 border-2 border-black"
-                />
-                <span className="text-sm font-black">{user.displayName}</span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all font-black"
-              >
-                Logout
-              </button>
+            <div className="flex items-center space-x-3 bg-[#4ECDC4] border-4 border-black px-3 md:px-4 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] min-h-[44px]">
+              <img 
+                src={user.photoURL} 
+                alt={user.displayName}
+                className="w-6 h-6 md:w-8 md:h-8 border-2 border-black"
+              />
+              <span className="text-xs md:text-sm font-black truncate">{user.displayName}</span>
             </div>
           </div>
         </div>

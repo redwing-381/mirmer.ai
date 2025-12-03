@@ -48,22 +48,22 @@ export default function Stage3({ result, loading }) {
   const modelName = result.model.split('/')[1] || result.model
 
   return (
-    <div className="mb-6">
-      <h3 className="text-2xl font-black mb-4">
+    <div className="mb-4 md:mb-6">
+      <h3 className="text-xl md:text-2xl font-black mb-3 md:mb-4">
         STAGE 3: Chairman's Final Synthesis
       </h3>
       
-      <div className="bg-[#DDD6FE] border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-8">
-        <div className="flex items-center justify-between mb-6">
-          <span className="px-4 py-2 bg-black text-white text-sm font-black">
+      <div className="bg-[#DDD6FE] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-4 md:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4 md:mb-6">
+          <span className="px-3 md:px-4 py-2 bg-black text-white text-xs md:text-sm font-black">
             CHAIRMAN: {modelName}
           </span>
           
           {/* Action Buttons */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             <button
               onClick={handleThumbsUp}
-              className={`p-2 border-4 border-black transition-all ${
+              className={`p-2 border-4 border-black transition-all min-h-[44px] min-w-[44px] flex items-center justify-center ${
                 feedback === 'up'
                   ? 'bg-[#4ECDC4] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
                   : 'bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]'
@@ -77,7 +77,7 @@ export default function Stage3({ result, loading }) {
             
             <button
               onClick={handleThumbsDown}
-              className={`p-2 border-4 border-black transition-all ${
+              className={`p-2 border-4 border-black transition-all min-h-[44px] min-w-[44px] flex items-center justify-center ${
                 feedback === 'down'
                   ? 'bg-[#FFE66D] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
                   : 'bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]'
@@ -91,7 +91,7 @@ export default function Stage3({ result, loading }) {
             
             <button
               onClick={handleCopy}
-              className={`px-3 py-2 border-4 border-black font-black text-sm transition-all ${
+              className={`px-3 py-2 border-4 border-black font-black text-xs md:text-sm transition-all min-h-[44px] ${
                 copied
                   ? 'bg-[#4ECDC4] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
                   : 'bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]'
@@ -103,7 +103,7 @@ export default function Stage3({ result, loading }) {
           </div>
         </div>
         
-        <div className="prose max-w-none prose-headings:font-black prose-strong:font-black prose-p:text-lg text-black prose-headings:text-black prose-p:text-black prose-strong:text-black prose-li:text-black">
+        <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none prose-headings:font-black prose-strong:font-black text-black prose-headings:text-black prose-p:text-black prose-strong:text-black prose-li:text-black overflow-x-auto">
           <ReactMarkdown>{result.response}</ReactMarkdown>
         </div>
       </div>

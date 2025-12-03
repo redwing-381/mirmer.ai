@@ -14,7 +14,7 @@ Built with [Kiro AI](https://kiro.ai) to demonstrate AI-assisted full-stack deve
 
 **Project Theme**: Multi-Agent AI Systems with Peer Review
 
-**Live Demo**: [mirmer.ai](https://mirmer.ai) *(if deployed)*
+**Live Demo**: [mirmer.ai](https://mirmerai.vercel.app/)
 
 This project demonstrates:
 - **Innovative Architecture**: 3-stage council process where AI models debate and synthesize answers
@@ -338,8 +338,6 @@ Mirmer AI includes Razorpay payment integration for Pro subscriptions (₹1,499/
 - **Enterprise**: Unlimited queries (custom pricing)
 
 ### Setup Razorpay Payments
-
-For detailed setup instructions, see [RAZORPAY_SETUP.md](RAZORPAY_SETUP.md).
 
 Quick setup:
 

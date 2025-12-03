@@ -5,7 +5,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { api } from '../api'
 import UpgradeModal from '../components/UpgradeModal'
 import SubscriptionSupportModal from '../components/SubscriptionSupportModal'
-import { ArrowLeft, BarChart3, CreditCard, User, RefreshCw } from 'lucide-react'
+import { ArrowLeft, BarChart3, CreditCard, User } from 'lucide-react'
 
 export default function SettingsPage() {
   const navigate = useNavigate()
@@ -146,26 +146,52 @@ export default function SettingsPage() {
       backgroundSize: '20px 20px'
     }}>
       {/* Header */}
-      <div className="bg-white border-b-4 border-black p-6">
+      <div className="bg-white border-b-4 border-black p-4 md:p-6">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3 md:space-x-4">
             <button
               onClick={() => navigate('/app')}
-              className="p-2 border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all"
+              className="p-2 border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
-              <ArrowLeft className="w-6 h-6" />
+              <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />
             </button>
-            <img src="/favicon.png" alt="Mirmer AI Logo" className="w-10 h-10 border-2 border-black" />
-            <h1 className="text-4xl font-black">SETTINGS</h1>
+            <img src="/favicon.png" alt="Mirmer AI Logo" className="w-8 h-8 md:w-10 md:h-10 border-2 border-black" />
+            <h1 className="text-2xl md:text-4xl font-black">SETTINGS</h1>
           </div>
         </div>
       </div>
 
       {/* Content with Sidebar */}
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-3 md:p-6">
+        {/* Mobile Horizontal Tab Bar */}
+        <div className="md:hidden mb-4">
+          <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-2">
+            <div className="flex gap-2">
+              {tabs.map((tab) => {
+                const Icon = tab.icon
+                const isActive = activeTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`flex-1 flex flex-col items-center justify-center px-3 py-3 border-4 border-black font-black transition-all min-h-[44px] ${
+                      isActive
+                        ? 'bg-[#FFE66D] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+                        : 'bg-white hover:bg-[#f5f5f5]'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5 mb-1" />
+                    <span className="text-xs">{tab.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+
         <div className="flex gap-6">
-          {/* Sidebar Navigation */}
-          <div className="w-64 flex-shrink-0">
+          {/* Desktop Sidebar Navigation */}
+          <div className="hidden md:block w-64 flex-shrink-0">
             <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 space-y-2">
               {tabs.map((tab) => {
                 const Icon = tab.icon
@@ -189,23 +215,23 @@ export default function SettingsPage() {
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 space-y-6">
+          <div className="flex-1 space-y-4 md:space-y-6">
             {/* Usage Tab */}
             {activeTab === 'usage' && (
-              <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8">
-                <h2 className="text-2xl font-black mb-6">USAGE STATISTICS</h2>
+              <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 md:p-8">
+                <h2 className="text-xl md:text-2xl font-black mb-4 md:mb-6">USAGE STATISTICS</h2>
                 
                 {usageStats && (
-                  <div className="space-y-6">
+                  <div className="space-y-4 md:space-y-6">
                     {/* Daily Usage */}
                     <div>
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-lg font-black">Daily Usage</h3>
-                        <span className="text-sm font-bold px-3 py-1 bg-[#4ECDC4] border-2 border-black">
+                      <div className="flex justify-between items-center mb-2 md:mb-3">
+                        <h3 className="text-base md:text-lg font-black">Daily Usage</h3>
+                        <span className="text-xs md:text-sm font-bold px-2 md:px-3 py-1 bg-[#4ECDC4] border-2 border-black">
                           {usageStats.tier.toUpperCase()}
                         </span>
                       </div>
-                      <div className="p-4 border-4 border-black bg-[#f5f5f5]">
+                      <div className="p-3 md:p-4 border-4 border-black bg-[#f5f5f5]">
                         <div className="flex justify-between mb-2">
                           <span className="font-bold">Today</span>
                           <span className="font-black">
@@ -232,8 +258,8 @@ export default function SettingsPage() {
 
                     {/* Monthly Usage */}
                     <div>
-                      <h3 className="text-lg font-black mb-3">Monthly Usage</h3>
-                      <div className="p-4 border-4 border-black bg-[#f5f5f5]">
+                      <h3 className="text-base md:text-lg font-black mb-2 md:mb-3">Monthly Usage</h3>
+                      <div className="p-3 md:p-4 border-4 border-black bg-[#f5f5f5]">
                         <div className="flex justify-between mb-2">
                           <span className="font-bold">This Month</span>
                           <span className="font-black">
@@ -260,10 +286,10 @@ export default function SettingsPage() {
 
                     {/* Total Queries */}
                     <div>
-                      <h3 className="text-lg font-black mb-3">Total Queries</h3>
-                      <div className="p-4 border-4 border-black bg-[#f5f5f5]">
-                        <p className="text-3xl font-black">{usageStats.total_queries || 0}</p>
-                        <p className="text-sm font-bold text-gray-600 mt-1">All-time queries</p>
+                      <h3 className="text-base md:text-lg font-black mb-2 md:mb-3">Total Queries</h3>
+                      <div className="p-3 md:p-4 border-4 border-black bg-[#f5f5f5]">
+                        <p className="text-2xl md:text-3xl font-black">{usageStats.total_queries || 0}</p>
+                        <p className="text-xs md:text-sm font-bold text-gray-600 mt-1">All-time queries</p>
                       </div>
                     </div>
                   </div>
@@ -273,13 +299,13 @@ export default function SettingsPage() {
 
             {/* Subscription Tab */}
             {activeTab === 'subscription' && (
-        <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-black">SUBSCRIPTION</h2>
+        <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 md:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4 md:mb-6">
+            <h2 className="text-xl md:text-2xl font-black">SUBSCRIPTION</h2>
             <button
               onClick={verifySubscriptionStatus}
               disabled={verifying}
-              className="px-4 py-2 bg-[#4ECDC4] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all font-black disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-[#4ECDC4] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all font-black disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base min-h-[44px]"
             >
               {verifying ? 'VERIFYING...' : 'REFRESH STATUS'}
             </button>
@@ -294,13 +320,13 @@ export default function SettingsPage() {
             </div>
           )}
           
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             {/* Current Plan */}
-            <div className={`p-6 border-4 border-black ${isPro ? 'bg-[#FFE66D]' : 'bg-[#f5f5f5]'}`}>
-              <div className="flex items-center justify-between mb-4">
+            <div className={`p-4 md:p-6 border-4 border-black ${isPro ? 'bg-[#FFE66D]' : 'bg-[#f5f5f5]'}`}>
+              <div className="flex items-center justify-between mb-3 md:mb-4">
                 <div>
-                  <p className="text-sm font-black text-gray-600">CURRENT PLAN</p>
-                  <p className="text-3xl font-black">{isPro ? 'PRO' : 'FREE'}</p>
+                  <p className="text-xs md:text-sm font-black text-gray-600">CURRENT PLAN</p>
+                  <p className="text-2xl md:text-3xl font-black">{isPro ? 'PRO' : 'FREE'}</p>
                 </div>
                 {isPro && (
                   <div className="px-4 py-2 bg-[#4ECDC4] border-4 border-black font-black">
@@ -324,9 +350,9 @@ export default function SettingsPage() {
 
             {/* Upgrade Button for Free Users */}
             {!isPro && (
-              <div className="p-6 bg-[#4ECDC4] border-4 border-black">
-                <h3 className="text-xl font-black mb-3">UPGRADE TO PRO</h3>
-                <ul className="space-y-2 mb-4">
+              <div className="p-4 md:p-6 bg-[#4ECDC4] border-4 border-black">
+                <h3 className="text-lg md:text-xl font-black mb-3">UPGRADE TO PRO</h3>
+                <ul className="space-y-2 mb-4 text-sm md:text-base">
                   <li className="flex items-start">
                     <span className="text-black mr-2 font-black">✓</span>
                     <span className="font-bold">100 queries per day (10x more!)</span>
@@ -346,7 +372,7 @@ export default function SettingsPage() {
                 </ul>
                 <button
                   onClick={() => setShowUpgradeModal(true)}
-                  className="w-full px-6 py-3 bg-[#FF6B6B] text-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all font-black text-lg"
+                  className="w-full px-6 py-3 bg-[#FF6B6B] text-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all font-black text-base md:text-lg min-h-[44px]"
                 >
                   UPGRADE NOW - ₹150/MONTH
                 </button>
@@ -355,14 +381,14 @@ export default function SettingsPage() {
 
             {/* Manage Subscription for Pro Users */}
             {isPro && (
-              <div className="p-6 bg-[#f5f5f5] border-4 border-black">
-                <h3 className="text-xl font-black mb-3">MANAGE SUBSCRIPTION</h3>
-                <p className="font-bold text-gray-600 mb-4">
+              <div className="p-4 md:p-6 bg-[#f5f5f5] border-4 border-black">
+                <h3 className="text-lg md:text-xl font-black mb-3">MANAGE SUBSCRIPTION</h3>
+                <p className="font-bold text-gray-600 mb-4 text-sm md:text-base">
                   Need help with your subscription? Our support team is here to assist you.
                 </p>
                 <button
                   onClick={() => setShowSupportModal(true)}
-                  className="inline-block px-6 py-2 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all font-black"
+                  className="inline-block px-6 py-2 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all font-black text-sm md:text-base min-h-[44px]"
                 >
                   CONTACT SUPPORT
                 </button>
@@ -377,32 +403,32 @@ export default function SettingsPage() {
             {activeTab === 'profile' && (
               <>
                 {/* Account Info */}
-                <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8">
-                  <h2 className="text-2xl font-black mb-6">ACCOUNT INFORMATION</h2>
+                <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 md:p-8">
+                  <h2 className="text-xl md:text-2xl font-black mb-4 md:mb-6">ACCOUNT INFORMATION</h2>
                   
                   <div className="space-y-4">
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-3 md:space-x-4">
                       <img 
                         src={user?.photoURL} 
                         alt={user?.displayName}
-                        className="w-16 h-16 border-4 border-black"
+                        className="w-12 h-12 md:w-16 md:h-16 border-4 border-black"
                       />
                       <div>
-                        <p className="font-black text-lg">{user?.displayName}</p>
-                        <p className="font-bold text-gray-600">{user?.email}</p>
+                        <p className="font-black text-base md:text-lg">{user?.displayName}</p>
+                        <p className="font-bold text-gray-600 text-sm md:text-base break-all">{user?.email}</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Danger Zone */}
-                <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8">
-                  <h2 className="text-2xl font-black mb-6 text-[#FF6B6B]">DANGER ZONE</h2>
+                <div className="bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 md:p-8">
+                  <h2 className="text-xl md:text-2xl font-black mb-4 md:mb-6 text-[#FF6B6B]">DANGER ZONE</h2>
                   
                   <div className="space-y-4">
                     <button
                       onClick={handleLogout}
-                      className="px-6 py-2 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all font-black"
+                      className="px-6 py-2 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all font-black text-sm md:text-base min-h-[44px]"
                     >
                       LOGOUT
                     </button>
