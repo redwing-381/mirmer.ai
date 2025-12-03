@@ -224,7 +224,13 @@ class ExportService:
         Requirements: 3.3, 2.4, 5.4
         """
         try:
-            from weasyprint import HTML
+            # Try importing WeasyPrint
+            try:
+                from weasyprint import HTML
+            except ImportError as e:
+                logger.error(f"WeasyPrint import failed: {str(e)}")
+                raise ImportError("WeasyPrint is not properly installed. System dependencies may be missing.")
+            
             from jinja2 import Environment, FileSystemLoader
             import os
             
