@@ -142,7 +142,6 @@ export default function ChatInterface({ conversation, onSendMessage, loading, us
             <ExportMenu 
               conversationId={conversation.id} 
               userId={userId}
-              conversation={conversation}
             />
           </div>
         )}
