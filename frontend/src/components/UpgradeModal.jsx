@@ -139,7 +139,7 @@ export default function UpgradeModal({ isOpen, onClose }) {
                   <CardDescription className="text-sm font-semibold text-gray-700">Unlock your full potential</CardDescription>
                 </div>
                 <div className="text-right bg-white border-4 border-black px-5 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                  <div className="text-3xl font-black text-teal-600">₹1,499</div>
+                  <div className="text-3xl font-black text-teal-600">₹150</div>
                   <div className="text-xs text-gray-700 font-bold">/month</div>
                 </div>
               </div>

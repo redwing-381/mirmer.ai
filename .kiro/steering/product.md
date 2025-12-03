@@ -31,5 +31,5 @@ Mirmer AI is a multi-LLM consultation system that queries multiple AI models in 
 ## Business Model
 
 - **Free Tier**: 10 queries per day
-- **Pro Tier**: 100 queries per day (₹1,499/month or $19/month)
+- **Pro Tier**: 100 queries per day (₹150/month or $12/month)
 - **Enterprise**: Unlimited queries (custom pricing)

@@ -329,12 +329,12 @@ Copyright (c) 2025 Solaimuthu A
 
 ## Payment Integration
 
-Mirmer AI includes Razorpay payment integration for Pro subscriptions (₹1,499/month).
+Mirmer AI includes Razorpay payment integration for Pro subscriptions (₹150/month).
 
 ### Pricing Tiers
 
 - **Free**: 10 queries per day
-- **Pro**: 100 queries per day (₹1,499/month or $19/month)
+- **Pro**: 100 queries per day (₹150/month or $19/month)
 - **Enterprise**: Unlimited queries (custom pricing)
 
 ### Setup Razorpay Payments
