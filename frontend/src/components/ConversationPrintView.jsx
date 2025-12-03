@@ -39,6 +39,21 @@ export default function ConversationPrintView({ conversation, onClose, autoPrint
     );
   }
 
+  // Debug: Log conversation data
+  console.log('ConversationPrintView - Full conversation:', conversation);
+  console.log('ConversationPrintView - Messages count:', conversation.messages?.length);
+  conversation.messages?.forEach((msg, idx) => {
+    if (msg.role === 'assistant') {
+      console.log(`Message ${idx}:`, {
+        hasStage1: !!msg.stage1,
+        stage1Count: msg.stage1?.length,
+        hasStage2: !!msg.stage2,
+        stage2Count: msg.stage2?.length,
+        hasStage3: !!msg.stage3,
+      });
+    }
+  });
+
   const formatDate = (dateString) => {
     if (!dateString) return 'Unknown';
     try {
@@ -78,7 +93,7 @@ export default function ConversationPrintView({ conversation, onClose, autoPrint
                 <h2>Message {index + 1}: Assistant Response</h2>
 
                 {/* Stage 1: Individual Responses */}
-                {message.stage1 && message.stage1.length > 0 && (
+                {message.stage1 && message.stage1.length > 0 ? (
                   <div className="print-stage print-stage-1">
                     <h3>Stage 1: Individual Model Responses</h3>
                     {message.stage1.map((response, idx) => (
@@ -90,10 +105,15 @@ export default function ConversationPrintView({ conversation, onClose, autoPrint
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <div className="print-stage print-stage-1">
+                    <h3>Stage 1: Individual Model Responses</h3>
+                    <p className="print-warning">⚠️ Stage 1 data not available</p>
+                  </div>
                 )}
 
                 {/* Stage 2: Peer Rankings */}
-                {message.stage2 && message.stage2.length > 0 && (
+                {message.stage2 && message.stage2.length > 0 ? (
                   <div className="print-stage print-stage-2">
                     <h3>Stage 2: Peer Rankings</h3>
                     {message.stage2.map((ranking, idx) => (
@@ -105,15 +125,25 @@ export default function ConversationPrintView({ conversation, onClose, autoPrint
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <div className="print-stage print-stage-2">
+                    <h3>Stage 2: Peer Rankings</h3>
+                    <p className="print-warning">⚠️ Stage 2 data not available</p>
+                  </div>
                 )}
 
                 {/* Stage 3: Final Synthesis */}
-                {message.stage3 && (
+                {message.stage3 && (message.stage3.response || message.stage3.final_answer) ? (
                   <div className="print-stage print-stage-3">
                     <h3>Stage 3: Chairman Synthesis</h3>
                     <div className="print-content">
-                      {message.stage3.response || message.stage3.final_answer || 'No synthesis'}
+                      {message.stage3.response || message.stage3.final_answer}
                     </div>
+                  </div>
+                ) : (
+                  <div className="print-stage print-stage-3">
+                    <h3>Stage 3: Chairman Synthesis</h3>
+                    <p className="print-warning">⚠️ Stage 3 data not available</p>
                   </div>
                 )}
               </div>

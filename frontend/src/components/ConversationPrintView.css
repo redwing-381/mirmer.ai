@@ -140,6 +140,15 @@
   font-size: 1.2rem;
 }
 
+.print-warning {
+  padding: 1rem;
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  color: #856404;
+  font-style: italic;
+  margin: 0.5rem 0;
+}
+
 /* Print-specific styles */
 @media print {
   /* Reset page margins */
