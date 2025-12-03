@@ -1,5 +1,15 @@
 [phases.setup]
-nixPkgs = ["python310", "nodejs-18_x"]
+nixPkgs = [
+  "python310", 
+  "nodejs-18_x",
+  # WeasyPrint system dependencies
+  "pango",
+  "glib",
+  "harfbuzz",
+  "fontconfig",
+  "freetype",
+  "libffi"
+]
 
 [phases.install]
 cmds = [
