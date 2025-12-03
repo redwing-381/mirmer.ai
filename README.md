@@ -1,10 +1,10 @@
 # Mirmer AI - Multi-LLM Consultation System
 
-[![Kiroween Hackathon 2024](https://img.shields.io/badge/Kiroween-Hackathon%202024-orange?style=for-the-badge&logo=halloween)](https://kiro.ai)
+[![Kiroween Hackathon 2025](https://img.shields.io/badge/Kiroween-Hackathon%202024-orange?style=for-the-badge&logo=halloween)](https://kiro.ai)
 [![Built with Kiro AI](https://img.shields.io/badge/Built%20with-Kiro%20AI-blue?style=for-the-badge)](https://kiro.ai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
-> 🎃 **Kiroween Hackathon 2024 Project** - Multi-Agent AI System with Peer Review
+> 🎃 **Kiroween Hackathon 2025 Project** - Multi-Agent AI System with Peer Review
 
 A multi-LLM consultation system that queries multiple AI models in parallel, has them peer-review each other's responses, and synthesizes a final answer through a 3-stage council process.
 
