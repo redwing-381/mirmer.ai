@@ -2,9 +2,12 @@
 Council orchestration for the 3-stage multi-LLM consultation process.
 """
 import logging
+import time
 from typing import Dict, List, Any, Optional
 from openrouter import query_models_parallel
 from config import COUNCIL_MODELS
+from rate_limiter import get_rate_limiter
+from performance import get_performance_monitor
 
 logger = logging.getLogger(__name__)
 
@@ -29,15 +32,23 @@ async def stage1_collect_responses(
     
     Requirements: 3.1, 3.2, 3.3, 3.5
     """
+    # Start performance monitoring
+    perf_monitor = get_performance_monitor()
+    timer_id = perf_monitor.start_stage(1, {"query_length": len(user_query)})
+    
     logger.info(f"Stage 1: Collecting responses from {len(COUNCIL_MODELS)} models")
     
-    # Add small delay to avoid rate limits
-    await asyncio_module.sleep(1)
+    # Use adaptive rate limiter instead of fixed delay
+    rate_limiter = get_rate_limiter()
+    await rate_limiter.wait_if_needed("openrouter")
     
     # Build messages list with user query
     messages = [
         {"role": "user", "content": user_query}
     ]
+    
+    # Track individual model response times
+    model_start_times = {model: time.time() for model in COUNCIL_MODELS}
     
     # Query all council models in parallel
     responses = await query_models_parallel(
@@ -49,6 +60,11 @@ async def stage1_collect_responses(
     # Filter out None responses and format results
     results = []
     for model, response in responses.items():
+        # Log individual model response time
+        if model in model_start_times:
+            duration = time.time() - model_start_times[model]
+            perf_monitor.log_model_response(model, duration)
+        
         if response is not None and response.get("content"):
             results.append({
                 "model": model,
@@ -61,6 +77,9 @@ async def stage1_collect_responses(
     
     if not results:
         logger.error("Stage 1: All models failed to respond")
+    
+    # End performance monitoring
+    stage_duration = perf_monitor.end_stage(timer_id)
     
     return results
 
@@ -217,10 +236,15 @@ async def stage2_collect_rankings(
     
     Requirements: 4.3, 4.4
     """
+    # Start performance monitoring
+    perf_monitor = get_performance_monitor()
+    timer_id = perf_monitor.start_stage(2, {"responses_to_rank": len(stage1_results)})
+    
     logger.info(f"Stage 2: Collecting rankings from {len(COUNCIL_MODELS)} models")
     
-    # Add delay between stages to avoid rate limits
-    await asyncio_module.sleep(2)
+    # Use adaptive rate limiter instead of fixed delay
+    rate_limiter = get_rate_limiter()
+    await rate_limiter.wait_if_needed("openrouter")
     
     if not stage1_results:
         logger.error("Stage 2: No Stage 1 results to rank")
@@ -237,6 +261,9 @@ async def stage2_collect_rankings(
         {"role": "user", "content": ranking_prompt}
     ]
     
+    # Track individual model response times
+    model_start_times = {model: time.time() for model in COUNCIL_MODELS}
+    
     # Query all council models in parallel
     responses = await query_models_parallel(
         models=COUNCIL_MODELS,
@@ -247,6 +274,11 @@ async def stage2_collect_rankings(
     # Process rankings
     results = []
     for model, response in responses.items():
+        # Log individual model response time
+        if model in model_start_times:
+            duration = time.time() - model_start_times[model]
+            perf_monitor.log_model_response(model, duration)
+        
         if response is not None and response.get("content"):
             ranking_text = response["content"]
             parsed_ranking = parse_ranking_from_text(ranking_text)
@@ -260,6 +292,9 @@ async def stage2_collect_rankings(
             logger.warning(f"Stage 2: No ranking from model {model}")
     
     logger.info(f"Stage 2: Collected {len(results)}/{len(COUNCIL_MODELS)} rankings")
+    
+    # End performance monitoring
+    stage_duration = perf_monitor.end_stage(timer_id)
     
     return results, label_to_model
 
@@ -407,10 +442,18 @@ async def stage3_synthesize_final(
     
     Requirements: 6.2, 6.4, 6.5
     """
+    # Start performance monitoring
+    perf_monitor = get_performance_monitor()
+    timer_id = perf_monitor.start_stage(3, {
+        "stage1_responses": len(stage1_results),
+        "stage2_rankings": len(stage2_results)
+    })
+    
     logger.info(f"Stage 3: Chairman ({CHAIRMAN_MODEL}) synthesizing final answer")
     
-    # Add delay before chairman synthesis to avoid rate limits
-    await asyncio_module.sleep(2)
+    # Use adaptive rate limiter instead of fixed delay
+    rate_limiter = get_rate_limiter()
+    await rate_limiter.wait_if_needed("openrouter")
     
     # Build comprehensive chairman prompt
     chairman_prompt = _build_chairman_prompt(user_query, stage1_results, stage2_results)
@@ -420,6 +463,9 @@ async def stage3_synthesize_final(
         {"role": "user", "content": chairman_prompt}
     ]
     
+    # Track chairman response time
+    chairman_start_time = time.time()
+    
     # Query chairman model
     response = await query_model(
         model=CHAIRMAN_MODEL,
@@ -427,14 +473,23 @@ async def stage3_synthesize_final(
         api_key=api_key
     )
     
+    # Log chairman response time
+    chairman_duration = time.time() - chairman_start_time
+    perf_monitor.log_model_response(CHAIRMAN_MODEL, chairman_duration)
+    
     if response is None or not response.get("content"):
         logger.error("Stage 3: Chairman failed to generate response")
+        # End monitoring even on failure
+        perf_monitor.end_stage(timer_id)
         return {
             "model": CHAIRMAN_MODEL,
             "response": "Error: The chairman was unable to synthesize a final answer. Please try again."
         }
     
     logger.info("Stage 3: Chairman synthesis complete")
+    
+    # End performance monitoring
+    stage_duration = perf_monitor.end_stage(timer_id)
     
     return {
         "model": CHAIRMAN_MODEL,

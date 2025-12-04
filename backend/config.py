@@ -14,18 +14,98 @@ else:
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
-# Council Models Configuration
-# Optimized for 400+ queries with $10 credit (~$0.025 per query)
-# Using 4 cost-effective models from different providers for diverse perspectives
-COUNCIL_MODELS = [
-    "openai/gpt-3.5-turbo",            # OpenAI - Fast & reliable (~$0.002/call)
-    "anthropic/claude-3-haiku",        # Anthropic - Efficient & accurate (~$0.001/call)
-    "mistralai/mistral-7b-instruct",   # Mistral - Fast & capable (~$0.001/call)
-    "meta-llama/llama-3.1-8b-instruct" # Meta - Llama perspective (~$0.001/call)
-]
+# Model Tier Configuration
+# Select performance tier via MODEL_TIER environment variable: speed, balanced, or cost
+MODEL_TIER = os.getenv("MODEL_TIER", "balanced")
 
-# Chairman Model - Using Haiku for cost-effective synthesis
-CHAIRMAN_MODEL = "anthropic/claude-3-haiku"
+# Model configurations by tier
+MODEL_TIERS = {
+    "ultra": {
+        "council": [
+            "openai/gpt-4o",                         # OpenAI - Fastest flagship (~$0.015/call)
+            "anthropic/claude-3-5-sonnet",           # Anthropic - Fastest (~$0.015/call)
+            "openai/gpt-4-turbo",                    # OpenAI - Very fast (~$0.030/call)
+            "anthropic/claude-3-opus"                # Anthropic - Most capable (~$0.075/call)
+        ],
+        "chairman": "openai/gpt-4o",                 # Fastest synthesis (~$0.015/call)
+        "expected_latency": 6,  # seconds
+        "cost_per_query": 0.150  # Premium pricing
+    },
+    "premium": {
+        "council": [
+            "openai/gpt-4o-mini",                    # OpenAI - Very fast (~$0.004/call)
+            "google/gemini-2.0-flash-001",           # Google - Ultra fast (~$0.003/call)
+            "openai/gpt-3.5-turbo",                  # OpenAI - Ultra fast (~$0.002/call)
+            "anthropic/claude-3-5-haiku"             # Anthropic - Latest fast (~$0.004/call)
+        ],
+        "chairman": "anthropic/claude-3-5-haiku",    # Fast synthesis (~$0.004/call)
+        "expected_latency": 10,  # seconds
+        "cost_per_query": 0.017
+    },
+    "speed": {
+        "council": [
+            "google/gemini-2.0-flash-exp:free",      # Google - Very fast & FREE
+            "openai/gpt-oss-20b",                    # OpenAI OSS - Fast
+            "arcee-ai/trinity-mini:free",            # Arcee - Fast & FREE
+            "tngtech/tng-r1t-chimera:free"           # TNG - Fast & FREE
+        ],
+        "chairman": "google/gemini-2.0-flash-lite-001",  # Google - Fast synthesis
+        "expected_latency": 10,  # seconds
+        "cost_per_query": 0.005
+    },
+    "balanced": {
+        "council": [
+            "arcee-ai/trinity-mini",                 # Arcee - Fast & capable
+            "allenai/olmo-3-7b-instruct",            # AllenAI - Good balance
+            "openai/gpt-oss-20b",                    # OpenAI OSS - Fast
+            "google/gemini-2.0-flash-lite-001"       # Google - Very fast
+        ],
+        "chairman": "google/gemini-2.0-flash-lite-001",  # Google - Fast synthesis
+        "expected_latency": 12,  # seconds
+        "cost_per_query": 0.008
+    },
+    "cost": {
+        "council": [
+            "google/gemini-2.0-flash-exp:free",      # Google - FREE
+            "arcee-ai/trinity-mini:free",            # Arcee - FREE
+            "tngtech/tng-r1t-chimera:free",          # TNG - FREE
+            "amazon/nova-2-lite-v1:free"             # Amazon - FREE
+        ],
+        "chairman": "allenai/olmo-3-32b-think:free",  # AllenAI - FREE synthesis
+        "expected_latency": 20,  # seconds
+        "cost_per_query": 0.000  # All FREE!
+    }
+}
+
+
+def get_model_config():
+    """
+    Get model configuration for the selected tier.
+    
+    Returns:
+        dict: Model configuration with 'council', 'chairman', 'expected_latency', and 'cost_per_query'
+    
+    Validates MODEL_TIER and falls back to 'balanced' if invalid.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    tier = MODEL_TIER.lower()
+    
+    if tier not in MODEL_TIERS:
+        logger.warning(f"Invalid MODEL_TIER '{MODEL_TIER}', defaulting to 'balanced'. Valid options: ultra, premium, speed, balanced, cost")
+        tier = "balanced"
+    
+    config = MODEL_TIERS[tier]
+    logger.info(f"Using '{tier}' model tier - Expected latency: {config['expected_latency']}s, Cost: ${config['cost_per_query']:.3f}/query")
+    
+    return config
+
+
+# Get current tier configuration
+_model_config = get_model_config()
+COUNCIL_MODELS = _model_config["council"]
+CHAIRMAN_MODEL = _model_config["chairman"]
 
 # Storage Configuration
 DATA_DIR = "data/conversations"

@@ -5,6 +5,7 @@ import httpx
 import logging
 from typing import Dict, List, Optional, Any
 from config import OPENROUTER_API_URL, OPENROUTER_API_KEY
+from rate_limiter import get_rate_limiter
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,10 @@ async def query_model(
             )
             response.raise_for_status()
             
+            # Update rate limiter with response headers
+            rate_limiter = get_rate_limiter()
+            rate_limiter.update_from_headers("openrouter", dict(response.headers))
+            
             data = response.json()
             content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
             
@@ -68,6 +73,10 @@ async def query_model(
         logger.error(f"Timeout querying model {model} after {timeout}s")
         return None
     except httpx.HTTPStatusError as e:
+        # Check if it's a rate limit error (429)
+        if e.response.status_code == 429:
+            logger.warning(f"Rate limit hit for model {model}")
+            # Rate limit handling will be done at a higher level
         logger.error(f"HTTP error querying model {model}: {e.response.status_code} - {e.response.text}")
         return None
     except Exception as e:
