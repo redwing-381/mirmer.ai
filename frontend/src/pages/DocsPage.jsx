@@ -188,14 +188,14 @@ export default function DocsPage() {
 
               <h3 className="font-black text-xl mb-3">Using pip</h3>
               <CodeBlock
-                code="pip install mirmerai"
+                code="pip install mirmer-ai"
                 language="bash"
                 title="Terminal"
               />
 
               <h3 className="font-black text-xl mb-3 mt-6">Using uv</h3>
               <CodeBlock
-                code="uv pip install mirmerai"
+                code="uv pip install mirmer-ai"
                 language="bash"
                 title="Terminal"
               />
